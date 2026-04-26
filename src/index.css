@@ -1,0 +1,138 @@
+[data-theme="light"] {
+    --bg: #faf7f2;
+    --bg-mid: #f5f0e8;
+    --bg-card: #ffffff;
+    --bg-nav: #0f172a;
+    --bg-hero-start: #0f172a;
+    --bg-hero-end: #065f46;
+    --text: #1a1a2e;
+    --text-mid: #374151;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --border-focus: #059669;
+    --input-bg: #ffffff;
+    --input-text: #1a1a2e;
+    --sidebar-bg: #0f172a;
+    --sidebar-text: rgba(255, 255, 255, 0.7);
+    --sidebar-active: rgba(251, 191, 36, 0.15);
+    --metric-bg: #ffffff;
+    --table-hover: #fafafa;
+    --emerald: #065f46;
+    --emerald-mid: #059669;
+    --emerald-light: #d1fae5;
+    --emerald-xlight: #ecfdf5;
+    --gold: #b45309;
+    --gold-light: #fef3c7;
+    --gold-mid: #f59e0b;
+    --gold-bright: #fbbf24;
+    --navy: #0f172a;
+    --navy-mid: #1e293b;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
+    --geo-opacity: 0.04;
+    --toggle-track: #e5e7eb;
+    --toggle-knob: #ffffff;
+    --confirm-bg: linear-gradient(135deg, #ecfdf5, #fef3c7);
+    --price-bg: #ecfdf5;
+    --gold-bg: #fef3c7;
+    --policies-bg: #fef3c7;
+    --footer-bg: #0f172a;
+    --footer-text: rgba(255, 255, 255, 0.75);
+    --filter-bg: #ffffff;
+    --steps-bg: #ffffff;
+    --breakdown-bg: #ecfdf5;
+}
+
+[data-theme="dark"] {
+    --bg: #0d1117;
+    --bg-mid: #161b22;
+    --bg-card: #1c2230;
+    --bg-nav: #080d14;
+    --bg-hero-start: #080d14;
+    --bg-hero-end: #022c1e;
+    --text: #e6edf3;
+    --text-mid: #c9d1d9;
+    --text-muted: #8b949e;
+    --border: #30363d;
+    --border-focus: #059669;
+    --input-bg: #161b22;
+    --input-text: #e6edf3;
+    --sidebar-bg: #080d14;
+    --sidebar-text: rgba(255, 255, 255, 0.6);
+    --sidebar-active: rgba(251, 191, 36, 0.12);
+    --metric-bg: #1c2230;
+    --table-hover: #1c2230;
+    --emerald: #34d399;
+    --emerald-mid: #059669;
+    --emerald-light: #064e3b;
+    --emerald-xlight: #022c1e;
+    --gold: #fbbf24;
+    --gold-light: #1c1300;
+    --gold-mid: #d97706;
+    --gold-bright: #fbbf24;
+    --navy: #e6edf3;
+    --navy-mid: #c9d1d9;
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+    --geo-opacity: 0.06;
+    --toggle-track: #059669;
+    --toggle-knob: #ffffff;
+    --confirm-bg: linear-gradient(135deg, #022c1e, #1c1300);
+    --price-bg: #022c1e;
+    --gold-bg: #1c1300;
+    --policies-bg: #1c1300;
+    --footer-bg: #080d14;
+    --footer-text: rgba(255, 255, 255, 0.6);
+    --filter-bg: #1c2230;
+    --steps-bg: #1c2230;
+    --breakdown-bg: #022c1e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s
+}
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column
+}
+
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6
+}
+/* GEO PATTERN */
+.geo-bg {
+    position: relative;
+    overflow: hidden
+}
+
+.geo-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: var(--geo-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23065f46' fill-opacity='1'%3E%3Cpath d='M30 0L60 30L30 60L0 30z M30 10L50 30L30 50L10 30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0
+}
+
+
+
+.page {
+    display: none;
+    flex: 1;
+    flex-direction: column
+}
+
+.page.active {
+    display: flex
+}
