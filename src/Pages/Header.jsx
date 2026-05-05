@@ -6,6 +6,7 @@ import '../FunctionsofTheProject/toast.css'
 import { showToast } from "../FunctionsofTheProject/HelperFunctions";
 import { Login } from "../HelpersComponnent/Login";
 import { Register } from "../HelpersComponnent/Register";
+import axios from "axios";
 export function Header() {
  const navigate = useNavigate();
  const [isDark, setIsDark] = useState(false);
@@ -42,32 +43,71 @@ function toggleTheme() {
 
 
 function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); }
-function doLogin() {
-    
-    if (!LoginEmail || !LoginPass) { showToast('Please fill in all fields', 'error'); return; }
-    const isAdmin = LoginEmail.toLowerCase().includes('admin');
-   setCurrentUser({ name: isAdmin ? 'Admin Manager' : 'Ahmed Al-Rashid', email: LoginEmail, isAdmin });
+async function doLogin() {
+  if (!LoginEmail || !LoginPass) {
+    showToast('Please fill in all fields', 'error');
+    return;
+  }
+
+  try {
+    const res = await axios.post("http://localhost:8080/api/auth/login", {
+      email: LoginEmail,
+      password: LoginPass
+    });
+
+    console.log(res.data)
+    localStorage.setItem("accessToken", res.data.accessToken);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
+
+
+    setCurrentUser({
+      userName:res.data.userName,
+      role:res.data.role,
+      email: LoginEmail,
+    });
+
     setIsLogin(true);
     setIsLogout(false);
     setShowBookingBtn(true);
-    closeAuthModal(); 
-    
-    showToast(`Welcome back, "Ahmed Al-Rashid"! 👋`, 'success');
+    closeAuthModal();
+
+    showToast("Login successful 🎉", "success");
+
+  } catch (err) {
+    showToast("Invalid email or password ❌", "error");
+  }
 }
 
-function doRegister() {
+async function doRegister() {
+  if (!RegisterDetails.email || !RegisterDetails.pass || !RegisterDetails.pass2) {
+    showToast("Fill all fields", "error");
+    return;
+  }
+
+  if (RegisterDetails.pass !== RegisterDetails.pass2) {
+    showToast("Passwords do not match", "error");
+    return;
+  }
+
+  try {
+    const res = await axios.post("http://localhost:8080/api/auth/register", {
+     
+      email: RegisterDetails.email,
+      password: RegisterDetails.pass
+    });
+
     
-    
-    if (!RegisterDetails.firstName || !RegisterDetails.lastName || !RegisterDetails.email || !RegisterDetails.pass || !RegisterDetails.pass2) { showToast('Please fill all fields', 'error'); return; }
-    if (RegisterDetails.pass !== RegisterDetails.pass2) { showToast('Passwords do not match', 'error'); return; }
-    if (RegisterDetails.pass.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
-    if(!/\S+@\S+\.\S+/.test(RegisterDetails.email)) { showToast('Please enter a valid email', 'error'); return; }
-    setCurrentUser({ name: `${RegisterDetails.firstName} ${RegisterDetails.lastName}`, email: RegisterDetails.email, isAdmin: false });
-    setIsLogin(true);
-    setIsLogout(false);
-    setShowBookingBtn(true);
- 
-    closeAuthModal(); showToast(`Welcome to Al-Qasr, ${RegisterDetails.firstName}! ✦`, 'success');
+    localStorage.setItem("accessToken", res.data.accessToken);
+    localStorage.setItem("refreshToken", res.data.refreshToken);
+
+    setCurrentUser({ email: RegisterDetails.email });
+
+    showToast(`Hello ${RegisterDetails.firstName}`, "success");
+    closeAuthModal();
+
+  } catch (err) {
+    showToast("User already exists ❌", "error");
+  }
 }
 function openAuthModal() { switchAuthTab('login'); document.getElementById('auth-modal').classList.add('open'); }
 
@@ -101,7 +141,7 @@ function logout() {
     <button className="nav-btn" onClick={() => navigate("/home")} data-page="home">Home</button>
     <button className="nav-btn" onClick={() => navigate("/search")} data-page="search">Hotels</button>
     <button className="nav-btn" id="my-bookings-btn" onClick={() => navigate("/my-bookings")} data-page="my-bookings" style={{ display: showBookingBtn ? 'block' : 'none' }}>My Bookings</button>
-    <button className="nav-btn" id="admin-btn" onClick={() => navigate("/admin")} data-page="admin" style={{ display: isLogin && currentUser?.isAdmin ? 'block' : 'none' }}>Dashboard</button>
+    <button className="nav-btn" id="admin-btn" onClick={() => navigate("/admin")} data-page="admin" style={{ display: isLogin && currentUser.role==="ADMIN" ? 'block' : 'none' }}>Dashboard</button>
 
     <div className="theme-toggle" onClick={toggleTheme} title="Toggle dark/light mode">
       <div className="toggle-track"><div className="toggle-knob" id="toggle-knob">{knob}</div></div>

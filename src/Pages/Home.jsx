@@ -1,14 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import  { showToast } from  '../FunctionsofTheProject/HelperFunctions.js'
-import { Header } from "./Header.jsx";
+import {getHotels} from '../api/hotelApi.js'
+import HamoodaImg from "../assets/ProfilePhotos/Hamooda.png";
+import HamadImg from "../assets/ProfilePhotos/Hamad.png"
+import SaeedImg from "../assets/ProfilePhotos/Saeed.png"
+import {
+  FaInstagram,
+  FaXTwitter,
+  FaLinkedinIn,
+  FaYoutube,
+  FaWhatsapp
+} from "react-icons/fa6";
 import '../commonStyle.css'
 import '../FunctionsofTheProject/toast.css'
 import '../PagesStyles/home.css'
+import hotelBg from '../assets/hotelBackground.png';
+import { useEffect, useState } from "react";
+
 export function Home() {
     function hotelCardHTML(h) {
     return <div className="hotel-card" onClick={() => viewHotel(h.id)}>
     <div className="hotel-img" style={{ background: h.color }}>
-      <span style={{ fontSize: '3rem' }}>{h.img}</span>
+      <img src={h.imageUrl}></img>
       <div className="hotel-img-badge"><span className="badge badge-gold">{ '⭐'.repeat(h.stars) }</span></div>
     </div>
     <div className="hotel-card-body">
@@ -17,31 +30,63 @@ export function Home() {
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>{h.amenities.slice(0, 3).map(a => <span style={{ fontSize: '11px', background: 'var(--emerald-xlight)', color: 'var(--emerald)', padding: '3px 8px', borderRadius: '20px' }}>{a}</span>)}</div>
       <div className="hotel-footer">
         <div><div className="stars">{ '⭐'.repeat(Math.floor(h.rating)) }</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{h.rating} ({h.reviews} reviews)</div></div>
-        <div className="price-tag">${h.price}<span>/night</span></div>
+        <div className="price-tag">${h.minPrice}<span>/night</span></div>
       </div>
     </div>
   </div>;
 }
 function teamCardHTML(m) {
-    return <div className="team-card">
-      <div className="team-avatar" style={{ background: m.color }}>{m.emoji}</div>
-      <div style={{ fontFamily: "'Amiri', serif", fontSize: '1.1rem', color: 'var(--navy)', marginBottom: '4px' }}>{m.name}</div>
-      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{m.role}</div>
+  return (
+    <div className="team-card">
+      <div className="team-avatar">
+        <img src={m.image} alt={m.name} />
+      </div>
+
+      <div
+        style={{
+          fontFamily: "'Amiri', serif",
+          fontSize: '1.1rem',
+          color: 'var(--navy)',
+          marginBottom: '4px'
+        }}
+      >
+        {m.name}
+      </div>
+
+      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+        {m.role}
+      </div>
     </div>
+  );
 }
-const HOTELS = [
-    { id: 1, name: 'Burj Al-Qasr Palace', city: 'Dubai, UAE', stars: 5, rating: 4.9, reviews: 842, price: 380, img: '🏙', color: 'linear-gradient(135deg,#0f2a1e,#065f46)', amenities: ['🏊 Pool', '💪 Gym', '🛕 Prayer Room', '🍽 Restaurant', '🅿 Parking', '🌿 Spa'], desc: 'An iconic tower rising above Dubai Marina, offering panoramic views of the Gulf and city skyline. Inspired by the latticed towers of ancient Mecca.', rooms: [{ id: 1, name: 'Standard Room', capacity: 2, price: 380, emoji: '🛏' }, { id: 2, name: 'Deluxe Suite', capacity: 3, price: 580, emoji: '🏡' }, { id: 3, name: 'Royal Penthouse', capacity: 6, price: 1200, emoji: '👑' }] },
-    { id: 2, name: 'Topkapi Residence', city: 'Istanbul, Turkey', stars: 5, rating: 4.8, reviews: 621, price: 290, img: '🕌', color: 'linear-gradient(135deg,#1a0533,#4c1d95)', amenities: ['🌊 Bosphorus View', '🛕 Prayer Room', '🍽 Ottoman Cuisine', '💆 Hammam'], desc: 'Perched above the Bosphorus, this historic property blends Ottoman grandeur with contemporary comfort. Intricate Iznik tilework adorns every corridor.', rooms: [{ id: 1, name: 'Bosphorus View Room', capacity: 2, price: 290, emoji: '🌊' }, { id: 2, name: 'Ottoman Suite', capacity: 4, price: 520, emoji: '🏛' }] },
-    { id: 3, name: 'Al-Madinah Grand', city: 'Mecca, Saudi Arabia', stars: 5, rating: 4.9, reviews: 1240, price: 450, img: '🕋', color: 'linear-gradient(135deg,#7c2d12,#c2410c)', amenities: ['🕋 Masjid View', '🛕 Prayer Halls', '🍽 Halal Only', '🚌 Shuttle'], desc: 'The closest luxury hotel to Al-Masjid Al-Haram, offering breathtaking views of the Kaaba from premium suites.', rooms: [{ id: 1, name: 'Haramain View Room', capacity: 2, price: 450, emoji: '🕋' }, { id: 2, name: 'Zam Zam Suite', capacity: 4, price: 850, emoji: '✨' }] },
-    { id: 4, name: 'Riad Al-Andalus', city: 'Marrakech, Morocco', stars: 4, rating: 4.7, reviews: 389, price: 195, img: '🌺', color: 'linear-gradient(135deg,#7c3aed,#c026d3)', amenities: ['🌿 Courtyard', '🛁 Hammam', '🍽 Moroccan Cuisine', '🎭 Cultural Tours'], desc: 'A traditional riad hidden behind ancient medina walls, with a lush central courtyard and handcrafted zellij tilework.', rooms: [{ id: 1, name: 'Courtyard Room', capacity: 2, price: 195, emoji: '🌸' }, { id: 2, name: 'Terrace Suite', capacity: 3, price: 320, emoji: '🌅' }] },
-    { id: 5, name: "Pharaoh's Nile Palace", city: 'Cairo, Egypt', stars: 5, rating: 4.6, reviews: 512, price: 220, img: '🏛', color: 'linear-gradient(135deg,#78350f,#b45309)', amenities: ['🌊 Nile View', '🏛 Ancient Art', '🍽 Restaurant', '🏊 Pool'], desc: "Sitting on the Nile corniche with unobstructed views of the pyramids at sunset. Hieroglyphic motifs blend with Islamic geometrics.", rooms: [{ id: 1, name: 'Nile View Room', capacity: 2, price: 220, emoji: '🌊' }, { id: 2, name: 'Pharaoh Suite', capacity: 4, price: 420, emoji: '👑' }] },
-    { id: 6, name: 'Emirates Heritage Resort', city: 'Abu Dhabi, UAE', stars: 5, rating: 4.8, reviews: 734, price: 520, img: '🌴', color: 'linear-gradient(135deg,#0369a1,#0f766e)', amenities: ['🏖 Private Beach', '🏊 Infinity Pool', '🛕 Mosque', '🍽 7 Restaurants'], desc: 'A sweeping beachfront resort celebrating Emirati heritage, inspired by traditional wind tower architecture.', rooms: [{ id: 1, name: 'Garden Room', capacity: 2, price: 520, emoji: '🌿' }, { id: 2, name: 'Beach Suite', capacity: 4, price: 880, emoji: '🏖' }, { id: 3, name: 'Presidential Villa', capacity: 8, price: 2500, emoji: '🏰' }] },
-];
+let [HOTELS,setHotels]=useState([]);
+useEffect(()=>{
+getHotels()
+      .then((e) => {
+        console.log(e.content);
+        setHotels(e.content);
+      })
+      .catch((error) => {
+        console.error("Error fetching hotels:", error);
+      });
+},[])
+
 const TEAM = [
-    { name: 'Sheikh Omar Al-Rashid', role: 'Founder & Chairman', color: '#065f46', emoji: '👨‍💼' },
-    { name: 'Fatima Al-Zahra', role: 'CEO', color: '#7c2d12', emoji: '👩‍💼' },
-    { name: 'Dr. Yusuf Mansour', role: 'Head of Architecture', color: '#1e40af', emoji: '👨‍🎨' },
-    { name: 'Amina Khalil', role: 'Guest Experience', color: '#6d28d9', emoji: '👩‍✈️' },
+  {
+    name: 'Hamad Tarawa',
+    role: 'Project Lead & Full Stack Developer',
+    image: HamadImg
+  },
+  {
+    name: 'Mohammad Tawayha',
+    role: 'Spring Boot & Database Developer',
+    image: HamoodaImg
+  },
+  {
+    name: 'Saeed Awad',
+    role: 'React UI Developer',
+    image: SaeedImg
+  }
 ];
   const navigate = useNavigate();
   function scrollToAbout() { navigate('home'); setTimeout(() => document.getElementById('about-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }
@@ -52,7 +97,7 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
       <div className="hero-content fade-in">
         <div className="hero-eyebrow"><div className="hero-eyebrow-line"></div><span>Luxury Redefined</span></div>
         <h1>Where Elegance<br/>Meets <span>Tradition</span></h1>
-        <p>Experience world-className hospitality inspired by the golden age of Islamic architecture. Discover curated hotels across the finest destinations.</p>
+        <p>Experience world-class hospitality inspired by the golden age of Islamic architecture. Discover curated hotels across the finest destinations.</p>
       <div className="hero-actions">
         <button className="btn btn-gold btn-lg" onClick={() => navigate('search')}>✦ Discover Hotels</button>
         <button className="btn btn-lg" style={{ border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', background: 'transparent' }} onClick={() => navigate('about')}>Learn More</button>
@@ -63,6 +108,7 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
         <div style={{ textAlign: 'center' }}><span className="stat-num">98%</span><span className="stat-label">Satisfaction</span></div>
       </div>
     </div>
+     
   </div>
 
   <div className="container" style={{ position: 'relative', zIndex: 2, marginTop: '-30px' }}>
@@ -98,16 +144,54 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
     <div className="container">
       <div className="about-grid">
         <div>
-          <div className="section-eyebrow">Our Story</div>
-          <h2 className="section-title" style={{ textAlign: 'left', marginBottom: '1.5rem' }}>A Legacy of<br/>Timeless Hospitality</h2>
-          <p style={{ color: 'var(--text-mid)', lineHeight: '1.9', marginBottom: '1rem' }}>Al-Qasr Hotels was founded with a vision to blend the rich heritage of Islamic architecture with modern luxury. Our name — meaning "The Palace" in Arabic — reflects our commitment to regal experiences.</p>
-          <p style={{ color: 'var(--text-mid)', lineHeight: '1.9', marginBottom: '2rem' }}>From the intricate geometric patterns adorning our lobbies to the serene courtyards inspired by Andalusian riads, every element honors the golden age of Islamic civilization.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="amenity">🕌 Islamic Architecture</div><div className="amenity">⭐ 5-Star Service</div>
-            <div className="amenity">🌿 Halal Dining</div><div className="amenity">🛕 Prayer Facilities</div>
-          </div>
+       <div className="section-eyebrow">Our Story</div>
+
+<h2
+  className="section-title"
+  style={{ textAlign: 'left', marginBottom: '1.5rem' }}
+>
+  Saladin Boutique <br /> Hotel
+</h2>
+
+<p
+  style={{
+    color: 'var(--text-mid)',
+    lineHeight: '1.9',
+    marginBottom: '1rem'
+  }}
+>
+  Nestled in the heart of Jerusalem’s Old City, Saladin Boutique Hotel offers
+  a warm and intimate stay just a short walk from the Western Wall, Via Dolorosa,
+  and some of the city’s most meaningful historic landmarks.
+</p>
+
+<p
+  style={{
+    color: 'var(--text-mid)',
+    lineHeight: '1.9',
+    marginBottom: '2rem'
+  }}
+>
+  With only a small collection of comfortable rooms, our hotel blends local
+  character, modern convenience, and genuine hospitality. Guests can enjoy
+  complimentary Wi-Fi, relaxing shared spaces, on-site dining, and easy access
+  to the timeless streets of Jerusalem.
+</p>
+
+<div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem'
+  }}
+>
+  <div className="amenity">📍 Old City Location</div>
+  <div className="amenity">☕ Coffee Shop</div>
+  <div className="amenity">🍽 Restaurant</div>
+  <div className="amenity">🛏 Boutique Rooms</div>
+</div>
         </div>
-        <div className="about-img-box">🕌</div>
+        <div className="about-img-box"></div>
       </div>
     </div>
   </section>
@@ -120,13 +204,57 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
         <div className="section-divider"><div className="divider-line"></div><div className="divider-diamond"></div><div className="divider-line"></div></div>
       </div>
       <div className="team-grid" id="team-grid">{TEAM.map(m => teamCardHTML(m))}</div>
-      <div className="social-links">
-        <button className="social-btn" onClick={() => showToast('Instagram','info')}>📷</button>
-        <button className="social-btn" onClick={() => showToast('Twitter','info')}>🐦</button>
-        <button className="social-btn" onClick={() => showToast('LinkedIn','info')}>💼</button>
-        <button className="social-btn" onClick={() => showToast('YouTube','info')}>▶</button>
-        <button className="social-btn" onClick={() => showToast('WhatsApp','info')}>💬</button>
-      </div>
+     <div className="social-links">
+  <a
+    className="social-btn instagram"
+    href="https://www.instagram.com/sa3ed.mo.awad/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Instagram"
+  >
+    <FaInstagram />
+  </a>
+
+  <a
+    className="social-btn twitter"
+    href="https://x.com/Saaed_Awad_"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="X / Twitter"
+  >
+    <FaXTwitter />
+  </a>
+
+  <a
+    className="social-btn linkedin"
+    href="https://www.linkedin.com/in/saeed-awad-93b99826a/?locale=en"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="LinkedIn"
+  >
+    <FaLinkedinIn />
+  </a>
+
+  <a
+    className="social-btn youtube"
+    href="https://www.youtube.com/@saeedawad8426"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="YouTube"
+  >
+    <FaYoutube />
+  </a>
+
+  <a
+    className="social-btn whatsapp"
+    href="https://wa.me/970593818026"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="WhatsApp"
+  >
+    <FaWhatsapp />
+  </a>
+</div>
     </div>
   </section>
 

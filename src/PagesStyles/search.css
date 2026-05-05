@@ -1,0 +1,125 @@
+.hotels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem
+}
+.filters-panel {
+    background: var(--filter-bg);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+    border: 1px solid var(--border)
+}
+
+.search-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 2rem;
+    padding: 2rem 0
+}
+
+.range-track {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--emerald-mid) 0%, var(--emerald-mid) 60%, var(--border) 60%);
+    outline: none;
+    cursor: pointer
+}
+
+.range-track::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--emerald-mid);
+    cursor: pointer;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15)
+}
+
+
+.form-group {
+    margin-bottom: 1.2rem
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    color: var(--input-text);
+    background: var(--input-bg);
+    transition: border-color 0.2s;
+    outline: none
+}
+
+.form-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.08)
+}
+
+.form-input.error {
+    border-color: #dc2626
+}
+
+.form-error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px
+}
+
+select.form-input option {
+    background: var(--input-bg);
+    color: var(--input-text)
+}
+.pagination {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 2rem
+}
+.page-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-card);
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--text-mid)
+}
+
+.page-btn:hover {
+    border-color: var(--emerald-mid);
+    color: var(--emerald-mid)
+}
+
+.page-btn.active {
+    background: var(--emerald-mid);
+    border-color: var(--emerald-mid);
+    color: #fff
+}

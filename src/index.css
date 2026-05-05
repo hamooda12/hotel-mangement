@@ -110,20 +110,9 @@ body {
     line-height: 1.6
 }
 /* GEO PATTERN */
-.geo-bg {
-    position: relative;
-    overflow: hidden
-}
 
-.geo-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: var(--geo-opacity);
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23065f46' fill-opacity='1'%3E%3Cpath d='M30 0L60 30L30 60L0 30z M30 10L50 30L30 50L10 30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0
-}
+
+
 
 
 

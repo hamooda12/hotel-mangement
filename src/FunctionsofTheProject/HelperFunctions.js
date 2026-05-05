@@ -5,6 +5,6 @@ export function showToast(msg, type = 'success') {
     t.className = `toast ${type}`;
     t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
     cont.appendChild(t);
-    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => t.classList.add('show'), 200);
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
 }
