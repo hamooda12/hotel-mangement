@@ -188,66 +188,64 @@ setBookings(Array.isArray(data) ? data : []);
             {bookings.map((booking) => {
               const nights = calcNights(booking.checkIn, booking.checkOut);
 
-              return (
-                <div className="booking-card" key={booking.id}>
-             <div className="booking-detail-image-wrap">
-  <img
-    className="booking-detail-image"
-    src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
-    alt={booking.hotelName || "Hotel"}
-    onError={(e) => {
-      e.currentTarget.src = "/hotel-placeholder.jpg";
-    }}
-  />
-</div>
+              return(<div className="booking-card" key={booking.id}>
+  <div className="booking-hotel-image-wrap">
+    <img
+      className="booking-hotel-image"
+      src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
+      alt={booking.hotelName || "Hotel"}
+      onError={(e) => {
+        e.currentTarget.src = "/hotel-placeholder.jpg";
+      }}
+    />
+  </div>
 
-                  <div className="booking-main-info">
-                    <h2>{booking.hotelName}</h2>
+  <div className="booking-main-info">
+    <h2>{booking.hotelName}</h2>
 
-                    <p className="booking-subtitle">
-                      📍 Hotel ID: {booking.hotelId} · {booking.roomTypeName}
-                    </p>
+    <p className="booking-subtitle">
+      📍 Hotel ID: {booking.hotelId} · {booking.roomTypeName}
+    </p>
 
-                    <div className="booking-meta">
-                      <span>📅 {formatDate(booking.checkIn)}</span>
-                      <span>→</span>
-                      <span>{formatDate(booking.checkOut)}</span>
-                      <span>🌙 {nights} nights</span>
-                      <span>👥 {booking.guests} guests</span>
-                    </div>
-                  </div>
+    <div className="booking-meta">
+      <span>📅 {formatDate(booking.checkIn)}</span>
+      <span>→</span>
+      <span>{formatDate(booking.checkOut)}</span>
+      <span>🌙 {nights} nights</span>
+      <span>👥 {booking.guests} guests</span>
+    </div>
+  </div>
 
-                  <div className="booking-actions-box">
-                    <div className="booking-price">
-                      {formatMoney(booking.totalPrice)}
-                    </div>
+  <div className="booking-actions-box">
+    <div className="booking-price">{formatMoney(booking.totalPrice)}</div>
 
-                    <span className={`badge ${getStatusClass(booking.status)}`}>
-                      {booking.status}
-                    </span>
+    <span className={`badge ${getStatusClass(booking.status)}`}>
+      {booking.status}
+    </span>
 
-                    <div className="booking-buttons">
-                      <button
-                        className="btn btn-outline btn-sm"
-                        onClick={() => setSelectedBooking(booking)}
-                      >
-                        Details
-                      </button>
+    <div className="booking-buttons">
+      <button
+        className="btn btn-outline btn-sm"
+        onClick={() => setSelectedBooking(booking)}
+      >
+        Details
+      </button>
 
-                      {canCancelBooking(booking.status) && (
-                        <button
-                          className="btn btn-danger btn-sm"
-                          disabled={cancelingId === booking.id}
-                          onClick={() => handleCancelBooking(booking.id)}
-                        >
-                          {cancelingId === booking.id ? "Canceling..." : "Cancel"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      {canCancelBooking(booking.status) && (
+        <button
+          className="btn btn-danger btn-sm"
+          disabled={cancelingId === booking.id}
+          onClick={() => handleCancelBooking(booking.id)}
+        >
+          {cancelingId === booking.id ? "Canceling..." : "Cancel"}
+        </button>
+      )}
+    </div>
+  </div>
+</div>)
+           
+           
+           })}
           </div>
         )}
       </div>
@@ -307,11 +305,17 @@ function BookingDetailsModal({
 
         <div className="booking-modal-body">
           <div className="booking-detail-hero">
-            <div className="booking-detail-icon">🏨</div>
-            <div>
-              <h3>{booking.hotelName}</h3>
-              <p>{booking.roomTypeName}</p>
-            </div>
+  
+    <div className="booking-detail-image-wrap">
+      <img
+        className="booking-detail-image-detail"
+        src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
+        alt={booking.hotelName || "Hotel"}
+        onError={(e) => {
+          e.currentTarget.src = "/hotel-placeholder.jpg";
+        }}
+      />
+    </div>
           </div>
 
           <div className="booking-detail-grid">
