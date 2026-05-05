@@ -200,17 +200,22 @@ function doHomeSearch() {
         ✦ Discover Hotels
       </button>
 
-      <button
-        className="btn btn-lg"
-        style={{
-          border: '1.5px solid rgba(255,255,255,0.4)',
-          color: '#fff',
-          background: 'transparent',
-        }}
-        onClick={() => navigate('/about')}
-      >
-        Learn More
-      </button>
+     <button
+  className="btn btn-lg"
+  style={{
+    border: '1.5px solid rgba(255,255,255,0.4)',
+    color: '#fff',
+    background: 'transparent',
+  }}
+  onClick={() => {
+    document.getElementById('about-section')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }}
+>
+  Learn More
+</button>
     </div>
 
    <div className="hero-stats">

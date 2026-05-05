@@ -128,7 +128,7 @@ export function HotelDetails() {
           onClick={() => navigate('/search')}
           style={{ marginBottom: '1.5rem' }}
         >
-          ← Back to Search
+          ← Back to Hotels 
         </button>
 
         <div id="hotel-detail-content">
