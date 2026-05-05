@@ -72,7 +72,7 @@ function BookRoom(room) {
     showToast("Please sign in to book", "info");
     return;
   }
-console.log(token)
+
   navigate("/booking", {
     state: {
       hotelId: hotel.id,

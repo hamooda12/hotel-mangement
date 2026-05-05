@@ -8,6 +8,7 @@ import { Contact } from './Pages/SupportPages/Contact';
 import { FAQ } from './Pages/SupportPages/FAQ';
 import { Privacy } from './Pages/SupportPages/Privacy';
 import { TermsOfService } from './Pages/SupportPages/TermsOfService';
+import BookingPage from './Pages/Booking';
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
           <Route path="home" element={<Home />} />
           <Route path="search" element={<Hotels />} />
           <Route path="hotel/:id" element={<HotelDetails />} />
-
+     <Route path="booking" element={<BookingPage />} />
           <Route path="contact" element={<Contact />} />
           <Route path="faq" element={<FAQ />} />
           <Route path="privacy" element={<Privacy />} />
