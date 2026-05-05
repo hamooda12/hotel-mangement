@@ -2,11 +2,30 @@ import '../commonStyle.css';
 import '../PagesStyles/search.css';
 import { getHotels } from '../api/hotelApi.js';
 import { useMemo, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export function Hotels() {
   const navigate = useNavigate();
-
+  const [searchParams] = useSearchParams();
+const roomTypeOptions = [
+  "King Guest Room",
+  "Executive King Room",
+  "Two-Bedroom Suite with One King and Two Twin Beds",
+  "Premium King Room",
+  "Premium Twin",
+  "Family Room",
+  "Double or Twin Room",
+  "Standard Double Room",
+  "Standard Twin Room",
+  "Triple Room with City View",
+  "Twin Room with City View",
+  "Family Two-Bedroom Suite with City View",
+  "Superior Twin Room",
+  "Standard King Room With Sofa Bed",
+  "Superior Triple Room",
+  "Junior King Suite With Sofa Bed",
+  "King Suite With Sofa Bed",
+];
   const [HOTELS, setHotels] = useState([]);
 
   useEffect(() => {
@@ -32,6 +51,20 @@ export function Hotels() {
     maxPrice: 2500,
     sort: 'recommended',
   });
+  useEffect(() => {
+  const city = searchParams.get('city') || '';
+  const roomType = searchParams.get('roomType') || '';
+  const guests = searchParams.get('guests') || '';
+
+  setFilters((prev) => ({
+    ...prev,
+    city,
+    roomType,
+    guests,
+  }));
+
+  setSearchPage(1);
+}, [searchParams]);
 
   function handleFilterChange(e) {
     const { name, value } = e.target;
@@ -45,16 +78,17 @@ export function Hotels() {
   }
 
   function resetFilters() {
-    setFilters({
-      city: '',
-      roomType: '',
-      guests: '',
-      maxPrice: 2500,
-      sort: 'recommended',
-    });
+  setFilters({
+    city: '',
+    roomType: '',
+    guests: '',
+    maxPrice: 2500,
+    sort: 'recommended',
+  });
 
-    setSearchPage(1);
-  }
+  setSearchPage(1);
+  navigate('/search', { replace: true });
+}
 
   function viewHotel(hotel) {
     setCurrentHotel(hotel);
@@ -129,44 +163,36 @@ export function Hotels() {
 
             <div className="form-group">
               <label className="form-label">Destination</label>
-              <select
-                className="form-input"
-                name="city"
-                value={filters.city}
-                onChange={handleFilterChange}
-              >
-                <option value="">All Cities</option>
-                <option value="Amman, Jordan">Amman, Jordan</option>
-                <option value="Jerusalem, Israel">Jerusalem, Israel</option>
-                <option value="Ramallah, Palestine">Ramallah, Palestine</option>
-                <option value="Bethlehem, Palestine">Bethlehem, Palestine</option>
-              </select>
+             <select
+  className="form-input"
+  name="city"
+  value={filters.city}
+  onChange={handleFilterChange}
+>
+  <option value="">All Cities</option>
+  <option value="Amman, Jordan">Amman, Jordan</option>
+  <option value="Jerusalem">Jerusalem</option>
+  <option value="Ramallah, Palestine">Ramallah, Palestine</option>
+  <option value="Hebron, Palestine">Hebron, Palestine</option>
+</select>
             </div>
 
             <div className="form-group">
               <label className="form-label">Room Type</label>
-              <select
-                className="form-input"
-                name="roomType"
-                value={filters.roomType}
-                onChange={handleFilterChange}
-              >
-                <option value="">All Room Types</option>
-                <option value="Standard Room">Standard Room</option>
-                <option value="Deluxe Suite">Deluxe Suite</option>
-                <option value="Royal Penthouse">Royal Penthouse</option>
-                <option value="Bosphorus View Room">Bosphorus View Room</option>
-                <option value="Ottoman Suite">Ottoman Suite</option>
-                <option value="Haramain View Room">Haramain View Room</option>
-                <option value="Zam Zam Suite">Zam Zam Suite</option>
-                <option value="Courtyard Room">Courtyard Room</option>
-                <option value="Terrace Suite">Terrace Suite</option>
-                <option value="Nile View Room">Nile View Room</option>
-                <option value="Pharaoh Suite">Pharaoh Suite</option>
-                <option value="Garden Room">Garden Room</option>
-                <option value="Beach Suite">Beach Suite</option>
-                <option value="Presidential Villa">Presidential Villa</option>
-              </select>
+             <select
+  className="form-input"
+  name="roomType"
+  value={filters.roomType}
+  onChange={handleFilterChange}
+>
+  <option value="">All Room Types</option>
+
+  {roomTypeOptions.map((roomType) => (
+    <option key={roomType} value={roomType}>
+      {roomType}
+    </option>
+  ))}
+</select>
             </div>
 
             <div className="form-group">
@@ -218,18 +244,7 @@ export function Hotels() {
                 {filteredHotels.length} hotels found
               </div>
 
-              <select
-                className="form-input"
-                style={{ width: 'auto', fontSize: '13px' }}
-                name="sort"
-                value={filters.sort}
-                onChange={handleFilterChange}
-              >
-                <option value="recommended">Sort: Recommended</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating-high">Rating: High to Low</option>
-              </select>
+          
             </div>
 
             <div className="hotels-grid">

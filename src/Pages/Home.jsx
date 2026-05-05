@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import  { showToast } from  '../FunctionsofTheProject/HelperFunctions.js'
-import {getHotels} from '../api/hotelApi.js'
+import {getHotels,getRoomTypes} from '../api/hotelApi.js'
 import HamoodaImg from "../assets/ProfilePhotos/Hamooda.png";
 import HamadImg from "../assets/ProfilePhotos/Hamad.png"
 import SaeedImg from "../assets/ProfilePhotos/Saeed.png"
@@ -17,23 +17,89 @@ import '../PagesStyles/home.css'
 import hotelBg from '../assets/hotelBackground.png';
 import { useEffect, useState } from "react";
 
+
 export function Home() {
-    function hotelCardHTML(h) {
-    return <div className="hotel-card" onClick={() => viewHotel(h.id)}>
-    <div className="hotel-img" style={{ background: h.color }}>
-      <img src={h.imageUrl}></img>
-      <div className="hotel-img-badge"><span className="badge badge-gold">{ '⭐'.repeat(h.stars) }</span></div>
-    </div>
-    <div className="hotel-card-body">
-      <div className="hotel-name">{h.name}</div>
-      <div className="hotel-location">📍 {h.city}</div>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>{h.amenities.slice(0, 3).map(a => <span style={{ fontSize: '11px', background: 'var(--emerald-xlight)', color: 'var(--emerald)', padding: '3px 8px', borderRadius: '20px' }}>{a}</span>)}</div>
-      <div className="hotel-footer">
-        <div><div className="stars">{ '⭐'.repeat(Math.floor(h.rating)) }</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{h.rating} ({h.reviews} reviews)</div></div>
-        <div className="price-tag">${h.minPrice}<span>/night</span></div>
+  const [stats, setStats] = useState({
+  hotelsCount: 0,
+  citiesCount: 0,
+  roomTypesCount: 0,
+});
+useEffect(() => {
+  async function loadHomeStats() {
+    try {
+      const hotelsResponse = await getHotels();
+      const roomsResponse = await getRoomTypes({
+        page: 0,
+        size: 100,
+        sort: "id,desc",
+      });
+
+      const hotels = hotelsResponse.content || hotelsResponse || [];
+      const roomTypes = roomsResponse.content || roomsResponse || [];
+
+      const uniqueCities = new Set(hotels.map((hotel) => hotel.city));
+
+      setStats({
+        hotelsCount: hotels.length,
+        citiesCount: uniqueCities.size,
+        roomTypesCount: roomTypes.length,
+      });
+    } catch (error) {
+      console.error("Error loading home stats:", error);
+    }
+  }
+
+  loadHomeStats();
+}, []);
+  function hotelCardHTML(h) {
+  return (
+    <div className="hotel-card" onClick={() => viewHotel(h.id)}>
+      <div className="hotel-img" style={{ background: h.color }}>
+        <img src={h.imageUrl} alt={h.name} />
+        <div className="hotel-img-badge">
+          <span className="badge badge-gold">{'⭐'.repeat(h.stars)}</span>
+        </div>
+      </div>
+
+      <div className="hotel-card-body">
+        <div className="hotel-name">{h.name}</div>
+        <div className="hotel-location">📍 {h.city}</div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            flexWrap: 'wrap',
+            marginBottom: '12px',
+          }}
+        >
+          {h.amenities.slice(0, 3).map((a) => (
+            <span
+              key={a}
+              style={{
+                fontSize: '11px',
+                background: 'var(--emerald-xlight)',
+                color: 'var(--emerald)',
+                padding: '3px 8px',
+                borderRadius: '20px',
+              }}
+            >
+              {a}
+            </span>
+          ))}
+        </div>
+
+        <div className="hotel-footer">
+          <div className="rating-center">
+            <div className="stars">{'⭐'.repeat(Math.floor(h.rating))}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              {h.rating} ({h.reviews} reviews)
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>;
+  );
 }
 function teamCardHTML(m) {
   return (
@@ -90,43 +156,169 @@ const TEAM = [
 ];
   const navigate = useNavigate();
   function scrollToAbout() { navigate('home'); setTimeout(() => document.getElementById('about-section')?.scrollIntoView({ behavior: 'smooth' }), 100); }
-function doHomeSearch() { const c = document.getElementById('home-city').value; if (c) document.getElementById('f-city').value = c; navigate('search'); }
+function doHomeSearch() {
+  const city = document.getElementById('home-city')?.value || '';
+  const roomType = document.getElementById('home-room-type')?.value || '';
+  const guests = document.getElementById('home-guests')?.value || '';
+
+  const params = new URLSearchParams();
+
+  if (city) params.append('city', city);
+  if (roomType) params.append('roomType', roomType);
+  if (guests) params.append('guests', guests);
+
+  navigate(`/search?${params.toString()}`);
+}
   return  (<div className="page active" id="page-home">
  
     <div className="hero geo-bg">
-      <div className="hero-content fade-in">
-        <div className="hero-eyebrow"><div className="hero-eyebrow-line"></div><span>Luxury Redefined</span></div>
-        <h1>Where Elegance<br/>Meets <span>Tradition</span></h1>
-        <p>Experience world-class hospitality inspired by the golden age of Islamic architecture. Discover curated hotels across the finest destinations.</p>
-      <div className="hero-actions">
-        <button className="btn btn-gold btn-lg" onClick={() => navigate('search')}>✦ Discover Hotels</button>
-        <button className="btn btn-lg" style={{ border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', background: 'transparent' }} onClick={() => navigate('about')}>Learn More</button>
-      </div>
-      <div className="hero-stats">
-        <div style={{ textAlign: 'center' }}><span className="stat-num">48+</span><span className="stat-label">Luxury Hotels</span></div>
-        <div style={{ textAlign: 'center' }}><span className="stat-num">12</span><span className="stat-label">Countries</span></div>
-        <div style={{ textAlign: 'center' }}><span className="stat-num">98%</span><span className="stat-label">Satisfaction</span></div>
-      </div>
+  <div className="hero-content fade-in">
+    <div className="hero-eyebrow">
+      <div className="hero-eyebrow-line"></div>
+      <span>Authentic Stays</span>
     </div>
-     
+
+    <h1>
+      Discover Comfort<br />
+      Across <span>Palestine & Jordan</span>
+    </h1>
+
+    <p>
+      Explore carefully selected hotels in Amman, Ramallah, Hebron, and Jerusalem.
+      Find comfortable rooms, trusted amenities, and stays that match your trip.
+    </p>
+
+    <div className="hero-actions">
+      <button
+        className="btn btn-gold btn-lg"
+        onClick={() => navigate('/search')}
+      >
+        ✦ Discover Hotels
+      </button>
+
+      <button
+        className="btn btn-lg"
+        style={{
+          border: '1.5px solid rgba(255,255,255,0.4)',
+          color: '#fff',
+          background: 'transparent',
+        }}
+        onClick={() => navigate('/about')}
+      >
+        Learn More
+      </button>
+    </div>
+
+   <div className="hero-stats">
+  <div style={{ textAlign: "center" }}>
+    <span className="stat-num">{stats.hotelsCount}</span>
+    <span className="stat-label">Selected Hotels</span>
   </div>
 
-  <div className="container" style={{ position: 'relative', zIndex: 2, marginTop: '-30px' }}>
-    <div className="search-widget">
-      <h3 style={{ fontFamily: "'Amiri',serif", color: 'var(--navy)', fontSize: '1.2rem', marginBottom: '1.25rem' }}>✦ Search Available Hotels</h3>
-      <div className="search-grid">
-        <div className="form-group" style={{ margin: 0 }}><label className="form-label">Destination</label>
-          <select className="form-input" id="home-city"><option value="">Select city...</option><option>Dubai, UAE</option><option>Istanbul, Turkey</option><option>Mecca, Saudi Arabia</option><option>Marrakech, Morocco</option><option>Cairo, Egypt</option><option>Abu Dhabi, UAE</option></select>
-        </div>
-        <div className="form-group" style={{ margin: 0 }}><label className="form-label">Check-in</label><input type="date" className="form-input" id="home-checkin"/></div>
-        <div className="form-group" style={{ margin: 0 }}><label className="form-label">Check-out</label><input type="date" className="form-input" id="home-checkout"/></div>
-        <div className="form-group" style={{ margin: 0 }}><label className="form-label">Guests</label>
-          <select className="form-input" id="home-guests"><option>1</option><option defaultValue={"2"}>2</option><option>3</option><option>4</option><option>5+</option></select>
-        </div>
-        <button className="btn btn-primary" style={{ height: '42px', whiteSpace: 'nowrap' }} onClick={doHomeSearch}>Search →</button>
+  <div style={{ textAlign: "center" }}>
+    <span className="stat-num">{stats.citiesCount}</span>
+    <span className="stat-label">Cities</span>
+  </div>
+
+  <div style={{ textAlign: "center" }}>
+    <span className="stat-num">{stats.roomTypesCount}+</span>
+    <span className="stat-label">Room Types</span>
+  </div>
+</div>
+  </div>
+</div>
+
+  <div
+  className="container"
+  style={{ position: 'relative', zIndex: 2, marginTop: '-30px' }}
+>
+  <div className="search-widget">
+    <h3
+      style={{
+        fontFamily: "'Amiri',serif",
+        color: 'var(--navy)',
+        fontSize: '1.2rem',
+        marginBottom: '1.25rem',
+      }}
+    >
+      ✦ Search Available Hotels
+    </h3>
+
+    <div className="search-grid">
+      <div className="form-group" style={{ margin: 0 }}>
+        <label className="form-label">Destination</label>
+
+        <select className="form-input" id="home-city">
+          <option value="">All Destinations</option>
+          <option value="Amman, Jordan">Amman, Jordan</option>
+          <option value="Ramallah, Palestine">Ramallah, Palestine</option>
+          <option value="Hebron, Palestine">Hebron, Palestine</option>
+          <option value="Jerusalem">Jerusalem</option>
+        </select>
       </div>
+
+      <div className="form-group" style={{ margin: 0 }}>
+        <label className="form-label">Room Type</label>
+
+        <select className="form-input" id="home-room-type">
+          <option value="">All Room Types</option>
+
+          <option value="King Guest Room">King Guest Room</option>
+          <option value="Executive King Room">Executive King Room</option>
+          <option value="Two-Bedroom Suite with One King and Two Twin Beds">
+            Two-Bedroom Suite with One King and Two Twin Beds
+          </option>
+
+          <option value="Premium King Room">Premium King Room</option>
+          <option value="Premium Twin">Premium Twin</option>
+          <option value="Family Room">Family Room</option>
+
+          <option value="Double or Twin Room">Double or Twin Room</option>
+
+          <option value="Standard Double Room">Standard Double Room</option>
+          <option value="Standard Twin Room">Standard Twin Room</option>
+
+          <option value="Triple Room with City View">Triple Room with City View</option>
+          <option value="Twin Room with City View">Twin Room with City View</option>
+          <option value="Family Two-Bedroom Suite with City View">
+            Family Two-Bedroom Suite with City View
+          </option>
+
+          <option value="Superior Twin Room">Superior Twin Room</option>
+          <option value="Standard King Room With Sofa Bed">
+            Standard King Room With Sofa Bed
+          </option>
+          <option value="Superior Triple Room">Superior Triple Room</option>
+          <option value="Junior King Suite With Sofa Bed">
+            Junior King Suite With Sofa Bed
+          </option>
+          <option value="King Suite With Sofa Bed">King Suite With Sofa Bed</option>
+        </select>
+      </div>
+
+      <div className="form-group" style={{ margin: 0 }}>
+        <label className="form-label">Guests</label>
+
+        <select className="form-input" id="home-guests">
+          <option value="">Any Guests</option>
+          <option value="1">1 Guest</option>
+          <option value="2">2 Guests</option>
+          <option value="3">3 Guests</option>
+          <option value="4">4 Guests</option>
+          <option value="5">5+ Guests</option>
+        </select>
+      </div>
+
+      <button
+        className="btn btn-primary"
+        style={{ height: '42px', whiteSpace: 'nowrap' }}
+        onClick={doHomeSearch}
+      >
+        Search →
+      </button>
     </div>
   </div>
+</div>
 
   <section className="section" style={{ background: 'var(--bg-mid)' }}>
     <div className="container">
@@ -136,7 +328,7 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
         <div className="section-divider"><div className="divider-line"></div><div className="divider-diamond"></div><div className="divider-line"></div></div>
       </div>
       <div className="hotels-grid" id="featured-hotels">{ HOTELS.slice(0, 3).map(h => hotelCardHTML(h))}</div>
-      <div style={{ textAlign: 'center', marginTop: '2.5rem' }}><button className="btn btn-outline" onClick={() => navigate('search')}>View All Hotels →</button></div>
+      <div style={{ textAlign: 'center', marginTop: '2.5rem' }}><button className="btn btn-outline" onClick={() => navigate('/search')}>View All Hotels →</button></div>
     </div>
   </section>
 
@@ -196,7 +388,7 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
     </div>
   </section>
 
-  <section className="section" style={{ background: 'var(--bg-mid)' }}>
+  <section className="section" id="about" style={{ background: 'var(--bg-mid)' }}>
     <div className="container">
       <div className="section-header">
         <div className="section-eyebrow">Our Team</div>
@@ -258,31 +450,114 @@ function doHomeSearch() { const c = document.getElementById('home-city').value; 
     </div>
   </section>
 
-  <footer>
-    <div className="container">
-      <div className="footer-grid">
-        <div>
-          <div className="footer-brand">Al-<span>Qasr</span> Hotels</div>
-          <p style={{ fontSize: '13px', lineHeight: '1.8', maxWidth: '280px', marginBottom: '1rem' }}>Luxury inspired by the timeless beauty of Islamic civilization. Your palace awaits across 12 countries.</p>
-          <div className="badge badge-gold">Est. 1995 · Dubai, UAE</div>
+<footer>
+  <div className="container">
+    <div className="footer-grid">
+      <div>
+        <div className="footer-brand">
+          Al<span>Qasr</span>
         </div>
-        <div>
-          <div className="footer-heading">Explore</div>
-          <button className="footer-link" onClick={() => navigate('home')}>Home</button>
-          <button className="footer-link" onClick={() => navigate('search')}>Hotels</button>
-          <button className="footer-link" onClick={() => navigate('my-bookings')}>My Bookings</button>
-          <button className="footer-link" onClick={scrollToAbout}>About Us</button>
-        </div>
-        <div>
-          <div className="footer-heading">Support</div>
-          <button className="footer-link" onClick={() => showToast('Contact: +971-4-000-0000','info')}>Contact Us</button>
-          <button className="footer-link" onClick={() => showToast('FAQ page coming soon','info')}>FAQ</button>
-          <button className="footer-link" onClick={() => showToast('Privacy policy','info')}>Privacy Policy</button>
-          <button className="footer-link" onClick={() => showToast('Terms of service','info')}>Terms of Service</button>
+
+        <p
+          style={{
+            fontSize: '13px',
+            lineHeight: '1.8',
+            maxWidth: '280px',
+            marginBottom: '1rem',
+          }}
+        >
+          A simple hotel booking platform for discovering selected hotels
+          across Palestine, Jordan, and Jerusalem with real room types,
+          amenities, and trusted hotel details.
+        </p>
+
+        <div className="badge badge-gold">
+          Hotels in Palestine · Jordan · Jerusalem
         </div>
       </div>
-      <div className="footer-bottom">© 2024 Al-Qasr Hotels Group. All rights reserved.</div>
+
+      <div>
+        <div className="footer-heading">Explore</div>
+
+        <button
+          className="footer-link"
+          onClick={() => navigate('/home')}
+        >
+          Home
+        </button>
+
+        <button
+          className="footer-link"
+          onClick={() => navigate('/search')}
+        >
+          Hotels
+        </button>
+
+        <button
+          className="footer-link"
+          onClick={() => navigate('/my-bookings')}
+        >
+          My Bookings
+        </button>
+
+       <button
+  className="footer-link"
+  onClick={() => {
+    navigate('/home');
+
+    setTimeout(() => {
+      document.getElementById('about')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 100);
+  }}
+>
+  About Us
+</button>
+      </div>
+
+    <div>
+  <div className="footer-heading">Support</div>
+
+  <button
+    className="footer-link"
+    type="button"
+    onClick={() => navigate('/contact')}
+  >
+    Contact Us
+  </button>
+
+  <button
+    className="footer-link"
+    type="button"
+    onClick={() => navigate('/faq')}
+  >
+    FAQ
+  </button>
+
+  <button
+    className="footer-link"
+    type="button"
+    onClick={() => navigate('/privacy')}
+  >
+    Privacy Policy
+  </button>
+
+  <button
+    className="footer-link"
+    type="button"
+    onClick={() => navigate('/terms')}
+  >
+    Terms of Service
+  </button>
+</div>
     </div>
-  </footer>
+
+    <div className="footer-bottom">
+      © 2026 StayFinder Hotels. All rights reserved.
+    </div>
+  </div>
+</footer>
    
 </div>) }

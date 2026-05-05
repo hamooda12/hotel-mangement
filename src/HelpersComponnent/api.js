@@ -1,5 +1,5 @@
 import axios from "axios";
-import { refreshToken } from "..FunctionsofTheProject/RefrechToken";
+import { refreshToken } from "../FunctionsofTheProject/RefrechToken";
 
 const api = axios.create({
   baseURL: "http://localhost:8080",

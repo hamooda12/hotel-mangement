@@ -4,6 +4,13 @@ const API_BASE_URL = "http://localhost:8080/api";
 
 export const getHotels = async () => {
   const response = await axios.get(`${API_BASE_URL}/hotels`);
+  return response.data;
+};
+
+export const getRoomTypes = async (params = {}) => {
+  const response = await axios.get(`${API_BASE_URL}/room-types`, {
+    params,
+  });
 
   return response.data;
 };

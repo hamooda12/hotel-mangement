@@ -1,25 +1,32 @@
-import { useState } from 'react'
-import { Home } from './Pages/Home'
-import { Layout } from './Pages/Layout'
-import './App.css'
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Home } from './Pages/Home';
+import { Layout } from './Pages/Layout';
+import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Hotels } from './Pages/Hotels';
-function App() {
-  const [count, setCount] = useState(0)
+import { HotelDetails } from './Pages/HotelDetails';
+import { Contact } from './Pages/SupportPages/Contact';
+import { FAQ } from './Pages/SupportPages/FAQ';
+import { Privacy } from './Pages/SupportPages/Privacy';
+import { TermsOfService } from './Pages/SupportPages/TermsOfService';
 
+function App() {
   return (
-    
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
-        <Route path="home" element={<Home />} />
-        <Route path="search" element={<Hotels />} />
+          <Route index element={<Home />} />
+          <Route path="home" element={<Home />} />
+          <Route path="search" element={<Hotels />} />
+          <Route path="hotel/:id" element={<HotelDetails />} />
+
+          <Route path="contact" element={<Contact />} />
+          <Route path="faq" element={<FAQ />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="terms" element={<TermsOfService />} />
         </Route>
       </Routes>
     </BrowserRouter>
-    
-  )
+  );
 }
 
-export default App
+export default App;
