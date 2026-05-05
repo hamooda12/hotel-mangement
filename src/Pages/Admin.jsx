@@ -9,12 +9,15 @@ import {
   getRoomTypes,
   getAllBookings,
   createHotel,
+  createRoomType,
 } from "../api/hotelApi";
 
 export function Admin() {
   const navigate = useNavigate();
 
   const [isHotelModalOpen, setIsHotelModalOpen] = useState(false);
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+
   const [activeTab, setActiveTab] = useState("overview");
 
   const [hotels, setHotels] = useState([]);
@@ -63,21 +66,60 @@ export function Admin() {
     }
   }
 
-  async function handleAddHotel(hotelData) {
-    try {
-      await createHotel(hotelData);
+ async function handleAddHotel(hotelData) {
+  try {
+    const token = localStorage.getItem("accessToken");
 
-      setIsHotelModalOpen(false);
+    if (!token) {
+      alert("You must login as admin first.");
+      return;
+    }
+
+    await createHotel(hotelData);
+
+    setIsHotelModalOpen(false);
+    await loadAdminData();
+
+    alert("Hotel added successfully!");
+  } catch (err) {
+    console.error(err);
+
+    if (err.response?.status === 401) {
+      alert("Unauthorized. Please login again as ADMIN.");
+      return;
+    }
+
+    if (err.response?.status === 403) {
+      alert("Forbidden. Your account does not have ADMIN permission.");
+      return;
+    }
+
+    const message =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Failed to add hotel.";
+
+    alert(message);
+  }
+}
+
+  async function handleAddRoom(roomData) {
+    try {
+      const { hotelId, ...roomPayload } = roomData;
+
+      await createRoomType(hotelId, roomPayload);
+
+      setIsRoomModalOpen(false);
       await loadAdminData();
 
-      alert("Hotel added successfully!");
+      alert("Room type added successfully!");
     } catch (err) {
       console.error(err);
 
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Failed to add hotel.";
+        "Failed to add room type.";
 
       alert(message);
     }
@@ -98,6 +140,7 @@ export function Admin() {
 
     const bookedRooms = bookings.filter((b) => {
       const status = String(b.status || "").toUpperCase();
+
       return (
         status === "CONFIRMED" ||
         status === "UPCOMING" ||
@@ -148,7 +191,7 @@ export function Admin() {
   }
 
   function handleViewHotel(hotelId) {
-    navigate(`/hotels/${hotelId}`);
+    navigate(`/hotel/${hotelId}`);
   }
 
   if (loading) {
@@ -231,8 +274,10 @@ export function Admin() {
           {activeTab === "rooms" && (
             <RoomsTab
               rooms={rooms}
+              hotels={hotels}
               getHotelNameById={getHotelNameById}
               formatMoney={formatMoney}
+              onOpenAddRoomModal={() => setIsRoomModalOpen(true)}
             />
           )}
 
@@ -253,6 +298,14 @@ export function Admin() {
         <AddHotelModal
           onClose={() => setIsHotelModalOpen(false)}
           onSubmit={handleAddHotel}
+        />
+      )}
+
+      {isRoomModalOpen && (
+        <AddRoomModal
+          hotels={hotels}
+          onClose={() => setIsRoomModalOpen(false)}
+          onSubmit={handleAddRoom}
         />
       )}
     </div>
@@ -536,7 +589,13 @@ function HotelsTab({ hotels, handleViewHotel, onOpenAddHotelModal }) {
   );
 }
 
-function RoomsTab({ rooms, getHotelNameById, formatMoney }) {
+function RoomsTab({
+  rooms,
+  hotels,
+  getHotelNameById,
+  formatMoney,
+  onOpenAddRoomModal,
+}) {
   return (
     <div className="fade-in">
       <div
@@ -558,11 +617,23 @@ function RoomsTab({ rooms, getHotelNameById, formatMoney }) {
 
         <button
           className="btn btn-primary"
-          onClick={() => alert("Add Room modal later")}
+          onClick={onOpenAddRoomModal}
+          disabled={hotels.length === 0}
+          title={hotels.length === 0 ? "Add a hotel first" : ""}
         >
           + Add Room
         </button>
       </div>
+
+      {hotels.length === 0 && (
+        <div className="card" style={{ marginBottom: "1rem" }}>
+          <div className="card-body">
+            <p style={{ color: "var(--text-muted)" }}>
+              You need to add a hotel before creating room types.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-body" style={{ padding: 0, overflowX: "auto" }}>
@@ -572,7 +643,9 @@ function RoomsTab({ rooms, getHotelNameById, formatMoney }) {
                 <th>Room Type</th>
                 <th>Hotel</th>
                 <th>Capacity</th>
+                <th>Total Rooms</th>
                 <th>Price/Night</th>
+                <th>Amenities</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -580,7 +653,7 @@ function RoomsTab({ rooms, getHotelNameById, formatMoney }) {
             <tbody>
               {rooms.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: "center" }}>
+                  <td colSpan="7" style={{ textAlign: "center" }}>
                     No room types found.
                   </td>
                 </tr>
@@ -629,13 +702,24 @@ function RoomsTab({ rooms, getHotelNameById, formatMoney }) {
                       👤 Up to {room.capacity || room.maxGuests || "-"}
                     </td>
 
+                    <td style={{ color: "var(--text)" }}>
+                      {room.totalRooms ?? "-"}
+                    </td>
+
                     <td
                       style={{
                         fontWeight: 700,
                         color: "var(--emerald)",
                       }}
                     >
-                      {formatMoney(room.pricePerNight || room.price)}/night
+                      {formatMoney(
+                        room.basePrice || room.pricePerNight || room.price
+                      )}
+                      /night
+                    </td>
+
+                    <td style={{ fontSize: "13px", color: "var(--text)" }}>
+                      {room.amenities || "-"}
                     </td>
 
                     <td>
@@ -840,196 +924,384 @@ function AddHotelModal({ onClose, onSubmit }) {
     }
   }
 
- return createPortal(
-  <div className="modal-overlay open" id="hotel-modal-overlay">
-    <div className="modal hotel-modal">
-      <div className="modal-header">
-        <h2 id="hotel-modal-title" className="modal-title">
-          Add New Hotel
-        </h2>
+  return createPortal(
+    <div className="modal-overlay open" id="hotel-modal-overlay">
+      <div className="modal hotel-modal">
+        <div className="modal-header">
+          <h2 id="hotel-modal-title" className="modal-title">
+            Add New Hotel
+          </h2>
 
-        <button type="button" className="modal-close" onClick={onClose}>
-          ×
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} id="hotel-modal-body">
-        <div className="form-group">
-          <label className="form-label">Hotel Name *</label>
-          <input
-            className="form-input"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="e.g. Ocean Grand Hotel Ramallah"
-            required
-          />
+          <button type="button" className="modal-close" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">City *</label>
-          <input
-            className="form-input"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            placeholder="e.g. Ramallah, Palestine"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Address *</label>
-          <input
-            className="form-input"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="e.g. Al Masyoun, Ramallah"
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Manager Email *</label>
-          <input
-            className="form-input"
-            type="email"
-            name="managerEmail"
-            value={formData.managerEmail}
-            onChange={handleChange}
-            placeholder="manager@gmail.com"
-            required
-          />
-        </div>
-
-        <div className="hotel-modal-grid">
+        <form onSubmit={handleSubmit} id="hotel-modal-body">
           <div className="form-group">
-            <label className="form-label">Stars</label>
+            <label className="form-label">Hotel Name *</label>
+            <input
+              className="form-input"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g. Ocean Grand Hotel Ramallah"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">City *</label>
+            <input
+              className="form-input"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              placeholder="e.g. Ramallah, Palestine"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Address *</label>
+            <input
+              className="form-input"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="e.g. Al Masyoun, Ramallah"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Manager Email *</label>
+            <input
+              className="form-input"
+              type="email"
+              name="managerEmail"
+              value={formData.managerEmail}
+              onChange={handleChange}
+              placeholder="manager@gmail.com"
+              required
+            />
+          </div>
+
+          <div className="hotel-modal-grid">
+            <div className="form-group">
+              <label className="form-label">Stars</label>
+              <select
+                className="form-input"
+                name="stars"
+                value={formData.stars}
+                onChange={handleChange}
+              >
+                <option value="5">5</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Min Price ($)</label>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                name="minPrice"
+                value={formData.minPrice}
+                onChange={handleChange}
+                placeholder="250"
+              />
+            </div>
+          </div>
+
+          <div className="hotel-modal-grid">
+            <div className="form-group">
+              <label className="form-label">Rating</label>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                max="5"
+                step="0.1"
+                name="rating"
+                value={formData.rating}
+                onChange={handleChange}
+                placeholder="4.5"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Reviews</label>
+              <input
+                className="form-input"
+                type="number"
+                min="0"
+                name="reviews"
+                value={formData.reviews}
+                onChange={handleChange}
+                placeholder="81"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Image URL</label>
+            <input
+              className="form-input"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/hotel.jpg"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Card Color / Gradient</label>
+            <input
+              className="form-input"
+              name="color"
+              value={formData.color}
+              onChange={handleChange}
+              placeholder="linear-gradient(135deg,#0369a1,#0f766e)"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Amenities</label>
+            <input
+              className="form-input"
+              name="amenitiesText"
+              value={formData.amenitiesText}
+              onChange={handleChange}
+              placeholder="Free WiFi, Pool, Spa, Restaurant"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-input"
+              rows="3"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Write hotel description..."
+            />
+          </div>
+
+          <div className="hotel-modal-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting}
+            >
+              {submitting ? "Adding..." : "Add Hotel"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function AddRoomModal({ hotels, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    hotelId: hotels?.[0]?.id || "",
+    name: "",
+    capacity: 1,
+    basePrice: "",
+    amenities: "",
+    totalRooms: 1,
+  });
+
+  const [submitting, setSubmitting] = useState(false);
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const roomPayload = {
+      hotelId: Number(formData.hotelId),
+      name: formData.name.trim(),
+      capacity: Number(formData.capacity),
+      basePrice: Number(formData.basePrice),
+      amenities: formData.amenities.trim(),
+      totalRooms: Number(formData.totalRooms),
+    };
+
+    if (!roomPayload.hotelId) {
+      alert("Please select a hotel.");
+      return;
+    }
+
+    if (!roomPayload.name) {
+      alert("Room type name is required.");
+      return;
+    }
+
+    if (roomPayload.capacity < 1) {
+      alert("Capacity must be at least 1.");
+      return;
+    }
+
+    if (roomPayload.basePrice <= 0) {
+      alert("Base price must be greater than 0.");
+      return;
+    }
+
+    if (roomPayload.totalRooms < 1) {
+      alert("Total rooms must be at least 1.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onSubmit(roomPayload);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return createPortal(
+    <div className="modal-overlay open" id="room-modal-overlay">
+      <div className="modal hotel-modal">
+        <div className="modal-header">
+          <h2 className="modal-title">Add New Room Type</h2>
+
+          <button type="button" className="modal-close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Hotel *</label>
             <select
               className="form-input"
-              name="stars"
-              value={formData.stars}
+              name="hotelId"
+              value={formData.hotelId}
               onChange={handleChange}
+              required
             >
-              <option value="5">5</option>
-              <option value="4">4</option>
-              <option value="3">3</option>
-              <option value="2">2</option>
-              <option value="1">1</option>
+              <option value="">Select hotel</option>
+
+              {hotels.map((hotel) => (
+                <option key={hotel.id} value={hotel.id}>
+                  {hotel.name}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Min Price ($)</label>
+            <label className="form-label">Room Type Name *</label>
             <input
               className="form-input"
-              type="number"
-              min="0"
-              name="minPrice"
-              value={formData.minPrice}
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              placeholder="250"
+              placeholder="e.g. Deluxe King Room"
+              required
             />
           </div>
-        </div>
 
-        <div className="hotel-modal-grid">
+          <div className="hotel-modal-grid">
+            <div className="form-group">
+              <label className="form-label">Capacity *</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Total Rooms *</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                name="totalRooms"
+                value={formData.totalRooms}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
           <div className="form-group">
-            <label className="form-label">Rating</label>
+            <label className="form-label">Base Price *</label>
             <input
               className="form-input"
               type="number"
-              min="0"
-              max="5"
-              step="0.1"
-              name="rating"
-              value={formData.rating}
+              min="0.01"
+              step="0.01"
+              name="basePrice"
+              value={formData.basePrice}
               onChange={handleChange}
-              placeholder="4.5"
+              placeholder="e.g. 120"
+              required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Reviews</label>
+            <label className="form-label">Amenities</label>
             <input
               className="form-input"
-              type="number"
-              min="0"
-              name="reviews"
-              value={formData.reviews}
+              name="amenities"
+              value={formData.amenities}
               onChange={handleChange}
-              placeholder="81"
+              placeholder="Free WiFi, Sea View, Air Conditioning"
             />
           </div>
-        </div>
 
-        <div className="form-group">
-          <label className="form-label">Image URL</label>
-          <input
-            className="form-input"
-            name="imageUrl"
-            value={formData.imageUrl}
-            onChange={handleChange}
-            placeholder="https://example.com/hotel.jpg"
-          />
-        </div>
+          <div className="hotel-modal-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
 
-        <div className="form-group">
-          <label className="form-label">Card Color / Gradient</label>
-          <input
-            className="form-input"
-            name="color"
-            value={formData.color}
-            onChange={handleChange}
-            placeholder="linear-gradient(135deg,#0369a1,#0f766e)"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Amenities</label>
-          <input
-            className="form-input"
-            name="amenitiesText"
-            value={formData.amenitiesText}
-            onChange={handleChange}
-            placeholder="Free WiFi, Pool, Spa, Restaurant"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Description</label>
-          <textarea
-            className="form-input"
-            rows="3"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Write hotel description..."
-          />
-        </div>
-
-        <div className="hotel-modal-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={onClose}
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={submitting}
-          >
-            {submitting ? "Adding..." : "Add Hotel"}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>,
-  document.body
-);
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting}
+            >
+              {submitting ? "Adding..." : "Add Room"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
 }

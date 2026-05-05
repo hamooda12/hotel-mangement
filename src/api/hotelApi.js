@@ -18,10 +18,11 @@ export const getHotels = async () => {
   return response.data;
 };
 export const createHotel = async (hotelData) => {
+  console.log(localStorage.getItem("accessToken"))
   const response = await axios.post(`${API_BASE_URL}/hotels`, hotelData, {
     headers: getAuthHeaders(),
   });
-
+console.log(response.data)
   return response.data;
 };
 
@@ -31,6 +32,17 @@ export const getRoomTypes = async (params = {}) => {
   const response = await axios.get(`${API_BASE_URL}/room-types`, {
     params,
   });
+
+  return response.data;
+};
+export const createRoomType = async (hotelId, roomData) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/hotels/${hotelId}/room-types`,
+    roomData,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
 
   return response.data;
 };
