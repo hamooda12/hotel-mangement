@@ -21,7 +21,15 @@ export function Header() {
     
  const [currentUser, setCurrentUser] = useState(null); // Placeholder for user state management
  const [activeTab, setActiveTab] = useState('login');
+useEffect(() => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
 
+  setCurrentUser(null);
+  setIsLogin(false);
+  setIsLogout(true);
+  setShowBookingBtn(false);
+}, []);
   useEffect(() => {
      document.documentElement.setAttribute(
        "data-theme",
@@ -101,7 +109,9 @@ async function doRegister() {
     localStorage.setItem("refreshToken", res.data.refreshToken);
 
     setCurrentUser({ email: RegisterDetails.email });
-
+setIsLogin(true);
+setIsLogout(false);
+setShowBookingBtn(true);
     showToast(`Hello ${RegisterDetails.firstName}`, "success");
     closeAuthModal();
 
@@ -123,13 +133,17 @@ function switchAuthTab(tab) {
     }
 }
 function logout() {
-    setCurrentUser(null);
-    setIsLogin(false);
-    setIsLogout(true);
-    setShowBookingBtn(false);
-    navigate("/home");
-    showToast("Signed out successfully", "info");
-  }
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+
+  setCurrentUser(null);
+  setIsLogin(false);
+  setIsLogout(true);
+  setShowBookingBtn(false);
+
+  navigate("/home");
+  showToast("Signed out successfully", "info");
+}
     return (
         <nav>
            

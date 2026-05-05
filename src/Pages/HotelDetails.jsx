@@ -4,6 +4,7 @@ import '../PagesStyles/hotelDetails.css'
 import { getHotels, getRoomTypes } from '../api/hotelApi.js';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { showToast } from '../FunctionsofTheProject/HelperFunctions.js';
 
 export function HotelDetails() {
   const navigate = useNavigate();
@@ -56,7 +57,32 @@ export function HotelDetails() {
 
     loadHotelDetails();
   }, [id]);
+function openAuthModalFromHotelDetails() {
+  document.getElementById("auth-modal")?.classList.add("open");
 
+  document.getElementById("tab-login")?.classList.add("active");
+  document.getElementById("tab-register")?.classList.remove("active");
+}
+
+function BookRoom(room) {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    openAuthModalFromHotelDetails();
+    showToast("Please sign in to book", "info");
+    return;
+  }
+console.log(token)
+  navigate("/booking", {
+    state: {
+      hotelId: hotel.id,
+      roomId: room.id,
+      hotelName: hotel.name,
+      roomName: room.name,
+      price: room.basePrice,
+    },
+  });
+}
   if (loading) {
     return (
       <div className="page-active" id="page-hotel">
@@ -446,8 +472,9 @@ export function HotelDetails() {
                           <button
                             className="btn btn-primary btn-sm"
                             style={{ marginTop: '1rem' }}
+                            onClick={()=>BookRoom(room)}
                           >
-                            Select Room
+                            Book Now
                           </button>
                         </div>
                       </div>
