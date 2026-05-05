@@ -17,6 +17,13 @@ export const getHotels = async () => {
   const response = await axios.get(`${API_BASE_URL}/hotels`);
   return response.data;
 };
+export const createHotel = async (hotelData) => {
+  const response = await axios.post(`${API_BASE_URL}/hotels`, hotelData, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+};
 
 // ================= ROOM TYPES =================
 

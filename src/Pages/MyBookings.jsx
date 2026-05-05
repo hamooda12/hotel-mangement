@@ -175,7 +175,7 @@ setBookings(Array.isArray(data) ? data : []);
             <button
               className="btn btn-primary"
               onClick={() => {
-                navigate('./search')
+                navigate('../search')
               }}
             >
               Browse Hotels
