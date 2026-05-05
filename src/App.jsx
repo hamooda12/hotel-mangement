@@ -9,7 +9,7 @@ import { FAQ } from './Pages/SupportPages/FAQ';
 import { Privacy } from './Pages/SupportPages/Privacy';
 import { TermsOfService } from './Pages/SupportPages/TermsOfService';
 import BookingPage from './Pages/Booking';
-
+import { MyBookings } from './Pages/MyBookings';
 function App() {
   return (
     <BrowserRouter>
@@ -24,6 +24,7 @@ function App() {
           <Route path="faq" element={<FAQ />} />
           <Route path="privacy" element={<Privacy />} />
           <Route path="terms" element={<TermsOfService />} />
+           <Route path="my-bookings" element={<MyBookings />} />
         </Route>
       </Routes>
     </BrowserRouter>

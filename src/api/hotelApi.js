@@ -109,3 +109,10 @@ export const getPayments = async () => {
 
   return response.data;
 };
+export const getAllBookings = async () => {
+  const response = await axios.get(`${API_BASE_URL}/bookings`, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+};
