@@ -24,6 +24,7 @@ export function Home() {
   citiesCount: 0,
   roomTypesCount: 0,
 });
+
 useEffect(() => {
   async function loadHomeStats() {
     try {
@@ -51,6 +52,9 @@ useEffect(() => {
 
   loadHomeStats();
 }, []);
+function viewHotel(id) {
+  navigate(`/hotel/${id}`);
+}
   function hotelCardHTML(h) {
   return (
     <div className="hotel-card" onClick={() => viewHotel(h.id)}>
