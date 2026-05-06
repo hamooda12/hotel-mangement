@@ -7,41 +7,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 export function Hotels() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-const roomTypeOptions = [
-  "King Guest Room",
-  "Executive King Room",
-  "Two-Bedroom Suite with One King and Two Twin Beds",
-  "Premium King Room",
-  "Premium Twin",
-  "Family Room",
-  "Double or Twin Room",
-  "Standard Double Room",
-  "Standard Twin Room",
-  "Triple Room with City View",
-  "Twin Room with City View",
-  "Family Two-Bedroom Suite with City View",
-  "Superior Twin Room",
-  "Standard King Room With Sofa Bed",
-  "Superior Triple Room",
-  "Junior King Suite With Sofa Bed",
-  "King Suite With Sofa Bed",
-];
-  const [HOTELS, setHotels] = useState([]);
 
-  useEffect(() => {
-    getHotels()
-      .then((e) => {
-        console.log(e.content);
-        setHotels(e.content);
-      })
-      .catch((error) => {
-        console.error('Error fetching hotels:', error);
-      });
-  }, []);
+  const [HOTELS, setHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const perPage = 4;
-
-  const [currentHotel, setCurrentHotel] = useState(null);
   const [searchPage, setSearchPage] = useState(1);
 
   const [filters, setFilters] = useState({
@@ -51,20 +22,85 @@ const roomTypeOptions = [
     maxPrice: 2500,
     sort: 'recommended',
   });
+
   useEffect(() => {
-  const city = searchParams.get('city') || '';
-  const roomType = searchParams.get('roomType') || '';
-  const guests = searchParams.get('guests') || '';
+    async function loadHotels() {
+      try {
+        setLoading(true);
+        setError('');
 
-  setFilters((prev) => ({
-    ...prev,
-    city,
-    roomType,
-    guests,
-  }));
+        const data = await getHotels({ size: 100 });
 
-  setSearchPage(1);
-}, [searchParams]);
+        if (Array.isArray(data)) {
+          setHotels(data);
+        } else if (Array.isArray(data?.content)) {
+          setHotels(data.content);
+        } else {
+          setHotels([]);
+        }
+      } catch (error) {
+        console.error('Error fetching hotels:', error);
+        setError('Failed to load hotels.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadHotels();
+  }, []);
+
+  useEffect(() => {
+    const city = searchParams.get('city') || '';
+    const roomType = searchParams.get('roomType') || '';
+    const guests = searchParams.get('guests') || '';
+
+    setFilters((prev) => ({
+      ...prev,
+      city,
+      roomType,
+      guests,
+    }));
+
+    setSearchPage(1);
+  }, [searchParams]);
+
+  function getRoomTypes(hotel) {
+    return hotel.roomTypes || hotel.rooms || hotel.roomTypeList || [];
+  }
+
+  function getRoomName(room) {
+    return room.name || room.typeName || room.roomTypeName || '';
+  }
+
+  function getRoomCapacity(room) {
+    return Number(room.capacity || room.maxGuests || room.guests || 0);
+  }
+
+  const cityOptions = useMemo(() => {
+    return [...new Set(HOTELS.map((hotel) => hotel.city).filter(Boolean))].sort();
+  }, [HOTELS]);
+
+  const roomTypeOptions = useMemo(() => {
+    const names = HOTELS.flatMap((hotel) => getRoomTypes(hotel))
+      .map((room) => getRoomName(room))
+      .filter(Boolean);
+
+    return [...new Set(names)].sort();
+  }, [HOTELS]);
+
+  const maxGuests = useMemo(() => {
+    const capacities = HOTELS.flatMap((hotel) => getRoomTypes(hotel))
+      .map((room) => getRoomCapacity(room))
+      .filter((capacity) => capacity > 0);
+
+    if (capacities.length === 0) return 1;
+
+    return Math.max(...capacities);
+  }, [HOTELS]);
+
+  const guestOptions = useMemo(() => {
+    return Array.from({ length: maxGuests }, (_, index) => index + 1);
+  }, [maxGuests]);
 
   function handleFilterChange(e) {
     const { name, value } = e.target;
@@ -78,51 +114,40 @@ const roomTypeOptions = [
   }
 
   function resetFilters() {
-  setFilters({
-    city: '',
-    roomType: '',
-    guests: '',
-    maxPrice: 2500,
-    sort: 'recommended',
-  });
+    setFilters({
+      city: '',
+      roomType: '',
+      guests: '',
+      maxPrice: 2500,
+      sort: 'recommended',
+    });
 
-  setSearchPage(1);
-  navigate('/search', { replace: true });
-}
+    setSearchPage(1);
+    navigate('/search', { replace: true });
+  }
 
   function viewHotel(hotel) {
-    setCurrentHotel(hotel);
     navigate(`/hotel/${hotel.id}`);
   }
 
-  function getRoomTypes(hotel) {
-    return hotel.roomTypes || hotel.rooms || hotel.roomTypeList || [];
-  }
-
-  
   const filteredHotels = useMemo(() => {
-    let result = HOTELS.filter((hotel) => {
+    return HOTELS.filter((hotel) => {
       const roomTypes = getRoomTypes(hotel);
 
-      const matchCity =
-        filters.city === '' || hotel.city === filters.city;
+      const matchCity = filters.city === '' || hotel.city === filters.city;
 
       const matchRoomType =
         filters.roomType === '' ||
-        roomTypes.some((room) => room.name === filters.roomType);
+        roomTypes.some((room) => getRoomName(room) === filters.roomType);
 
       const matchGuests =
         filters.guests === '' ||
-        roomTypes.some((room) => Number(room.capacity) >= Number(filters.guests));
+        roomTypes.some(
+          (room) => getRoomCapacity(room) >= Number(filters.guests)
+        );
 
-   
-
-      return matchCity &&matchRoomType && matchGuests 
+      return matchCity && matchRoomType && matchGuests;
     });
-
-  
-
-    return result;
   }, [HOTELS, filters]);
 
   const totalPages = Math.ceil(filteredHotels.length / perPage);
@@ -131,6 +156,38 @@ const roomTypeOptions = [
     (searchPage - 1) * perPage,
     searchPage * perPage
   );
+
+  if (loading) {
+    return (
+      <div className="page-active" id="page-search">
+        <div className="container" style={{ padding: '3rem 0' }}>
+          <h2 className="amiri" style={{ color: 'var(--navy)' }}>
+            Loading hotels...
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-active" id="page-search">
+        <div className="container" style={{ padding: '3rem 0' }}>
+          <div className="empty-state">
+            <div className="empty-icon">⚠️</div>
+            <div>{error}</div>
+            <button
+              className="btn btn-outline btn-sm"
+              style={{ marginTop: '1rem' }}
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-active" id="page-search">
@@ -163,36 +220,38 @@ const roomTypeOptions = [
 
             <div className="form-group">
               <label className="form-label">Destination</label>
-             <select
-  className="form-input"
-  name="city"
-  value={filters.city}
-  onChange={handleFilterChange}
->
-  <option value="">All Cities</option>
-  <option value="Amman, Jordan">Amman, Jordan</option>
-  <option value="Jerusalem">Jerusalem</option>
-  <option value="Ramallah, Palestine">Ramallah, Palestine</option>
-  <option value="Hebron, Palestine">Hebron, Palestine</option>
-</select>
+              <select
+                className="form-input"
+                name="city"
+                value={filters.city}
+                onChange={handleFilterChange}
+              >
+                <option value="">All Cities</option>
+
+                {cityOptions.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
               <label className="form-label">Room Type</label>
-             <select
-  className="form-input"
-  name="roomType"
-  value={filters.roomType}
-  onChange={handleFilterChange}
->
-  <option value="">All Room Types</option>
+              <select
+                className="form-input"
+                name="roomType"
+                value={filters.roomType}
+                onChange={handleFilterChange}
+              >
+                <option value="">All Room Types</option>
 
-  {roomTypeOptions.map((roomType) => (
-    <option key={roomType} value={roomType}>
-      {roomType}
-    </option>
-  ))}
-</select>
+                {roomTypeOptions.map((roomType) => (
+                  <option key={roomType} value={roomType}>
+                    {roomType}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
@@ -204,17 +263,14 @@ const roomTypeOptions = [
                 onChange={handleFilterChange}
               >
                 <option value="">Any Guests</option>
-                <option value="1">1 Guest</option>
-                <option value="2">2 Guests</option>
-                <option value="3">3 Guests</option>
-                <option value="4">4 Guests</option>
-                <option value="5">5 Guests</option>
-                <option value="6">6 Guests</option>
-                <option value="8">8 Guests</option>
+
+                {guestOptions.map((guestCount) => (
+                  <option key={guestCount} value={guestCount}>
+                    {guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}
+                  </option>
+                ))}
               </select>
             </div>
-
-          
 
             <button
               className="btn btn-outline"
@@ -243,8 +299,6 @@ const roomTypeOptions = [
               <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                 {filteredHotels.length} hotels found
               </div>
-
-          
             </div>
 
             <div className="hotels-grid">
@@ -259,11 +313,26 @@ const roomTypeOptions = [
                       className="hotel-img"
                       style={{ background: hotel.color }}
                     >
-                      <img src={hotel.imageUrl} alt={hotel.name} />
+                      {hotel.imageUrl ? (
+                        <img src={hotel.imageUrl} alt={hotel.name} />
+                      ) : (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '3rem',
+                          }}
+                        >
+                          🏨
+                        </div>
+                      )}
 
                       <div className="hotel-img-badge">
                         <span className="badge badge-gold">
-                          {'⭐'.repeat(hotel.stars)}
+                          {'⭐'.repeat(Number(hotel.stars || 0))}
                         </span>
                       </div>
                     </div>
@@ -296,22 +365,23 @@ const roomTypeOptions = [
                           </span>
                         ))}
                       </div>
-<div className="hotel-footer">
-  <div className="rating-center">
-    <div className="stars">
-      {'⭐'.repeat(Math.floor(hotel.rating || 0))}
-    </div>
 
-    <div
-      style={{
-        fontSize: '12px',
-        color: 'var(--text-muted)',
-      }}
-    >
-      {hotel.rating} ({hotel.reviews} reviews)
-    </div>
-  </div>
-</div>
+                      <div className="hotel-footer">
+                        <div className="rating-center">
+                          <div className="stars">
+                            {'⭐'.repeat(Math.floor(Number(hotel.rating || 0)))}
+                          </div>
+
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--text-muted)',
+                            }}
+                          >
+                            {hotel.rating ?? '-'} ({hotel.reviews ?? 0} reviews)
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))
