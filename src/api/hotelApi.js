@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import api from "../HelpersComponnent/api";
 const API_BASE_URL = "http://localhost:8080/api";
 
 export const getAuthHeaders = () => {
@@ -14,29 +14,29 @@ export const getAuthHeaders = () => {
 // ================= HOTELS =================
 
 export const getHotels = async () => {
-  const response = await axios.get(`${API_BASE_URL}/hotels`);
+  const response = await api.get(`${API_BASE_URL}/hotels`);
   return response.data;
 };
 export const createHotel = async (hotelData) => {
   console.log(localStorage.getItem("accessToken"))
-  const response = await axios.post(`${API_BASE_URL}/hotels`, hotelData, {
+  const response = await api.post(`${API_BASE_URL}/hotels`, hotelData, {
     headers: getAuthHeaders(),
   });
-console.log(response.data)
+
   return response.data;
 };
 
 // ================= ROOM TYPES =================
 
 export const getRoomTypes = async (params = {}) => {
-  const response = await axios.get(`${API_BASE_URL}/room-types`, {
+  const response = await api.get(`${API_BASE_URL}/room-types`, {
     params,
   });
 
   return response.data;
 };
 export const createRoomType = async (hotelId, roomData) => {
-  const response = await axios.post(
+  const response = await api.post(
     `${API_BASE_URL}/hotels/${hotelId}/room-types`,
     roomData,
     {
@@ -50,7 +50,7 @@ export const createRoomType = async (hotelId, roomData) => {
 // ================= BOOKINGS =================
 
 export const createBooking = async (bookingData) => {
-  const response = await axios.post(`${API_BASE_URL}/bookings`, bookingData, {
+  const response = await api.post(`${API_BASE_URL}/bookings`, bookingData, {
     headers: getAuthHeaders(),
   });
 
@@ -58,7 +58,7 @@ export const createBooking = async (bookingData) => {
 };
 
 export const getBookingById = async (bookingId) => {
-  const response = await axios.get(`${API_BASE_URL}/bookings/${bookingId}`, {
+  const response = await api.get(`${API_BASE_URL}/bookings/${bookingId}`, {
     headers: getAuthHeaders(),
   });
 
@@ -66,7 +66,7 @@ export const getBookingById = async (bookingId) => {
 };
 
 export const getGuestBookingHistory = async () => {
-  const response = await axios.get(`${API_BASE_URL}/bookings/guest-history`, {
+  const response = await api.get(`${API_BASE_URL}/bookings/guest-history`, {
     headers: getAuthHeaders(),
   });
 
@@ -74,7 +74,7 @@ export const getGuestBookingHistory = async () => {
 };
 
 export const cancelBooking = async (bookingId) => {
-  const response = await axios.patch(
+  const response = await api.patch(
     `${API_BASE_URL}/bookings/${bookingId}/cancel`,
     {},
     {
@@ -88,7 +88,7 @@ export const cancelBooking = async (bookingId) => {
 // ================= PAYMENTS =================
 
 export const createPaymentIntent = async (paymentData) => {
-  const response = await axios.post(
+  const response = await api.post(
     `${API_BASE_URL}/payments/intent`,
     paymentData,
     {
@@ -100,7 +100,7 @@ export const createPaymentIntent = async (paymentData) => {
 };
 
 export const simulatePayment = async (paymentId, outcome = "SUCCESS") => {
-  const response = await axios.post(
+  const response = await api.post(
     `${API_BASE_URL}/payments/${paymentId}/simulate`,
     {
       outcome,
@@ -114,7 +114,7 @@ export const simulatePayment = async (paymentId, outcome = "SUCCESS") => {
 };
 
 export const getPaymentById = async (paymentId) => {
-  const response = await axios.get(`${API_BASE_URL}/payments/${paymentId}`, {
+  const response = await api.get(`${API_BASE_URL}/payments/${paymentId}`, {
     headers: getAuthHeaders(),
   });
 
@@ -122,14 +122,14 @@ export const getPaymentById = async (paymentId) => {
 };
 
 export const getPayments = async () => {
-  const response = await axios.get(`${API_BASE_URL}/payments`, {
+  const response = await api.get(`${API_BASE_URL}/payments`, {
     headers: getAuthHeaders(),
   });
 
   return response.data;
 };
 export const getAllBookings = async () => {
-  const response = await axios.get(`${API_BASE_URL}/bookings`, {
+  const response = await api.get(`${API_BASE_URL}/bookings`, {
     headers: getAuthHeaders(),
   });
 
