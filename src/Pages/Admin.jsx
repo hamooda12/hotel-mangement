@@ -10,6 +10,7 @@ import {
   getAllBookings,
   createHotel,
   createRoomType,
+  updateRoomType,
 } from "../api/hotelApi";
 
 export function Admin() {
@@ -17,6 +18,7 @@ export function Admin() {
 
   const [isHotelModalOpen, setIsHotelModalOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [editingRoom, setEditingRoom] = useState(null);
 
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -66,42 +68,42 @@ export function Admin() {
     }
   }
 
- async function handleAddHotel(hotelData) {
-  try {
-    const token = localStorage.getItem("accessToken");
+  async function handleAddHotel(hotelData) {
+    try {
+      const token = localStorage.getItem("accessToken");
 
-    if (!token) {
-      alert("You must login as admin first.");
-      return;
+      if (!token) {
+        alert("You must login as admin first.");
+        return;
+      }
+
+      await createHotel(hotelData);
+
+      setIsHotelModalOpen(false);
+      await loadAdminData();
+
+      alert("Hotel added successfully!");
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 401) {
+        alert("Unauthorized. Please login again as ADMIN.");
+        return;
+      }
+
+      if (err.response?.status === 403) {
+        alert("Forbidden. Your account does not have ADMIN permission.");
+        return;
+      }
+
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to add hotel.";
+
+      alert(message);
     }
-
-    await createHotel(hotelData);
-
-    setIsHotelModalOpen(false);
-    await loadAdminData();
-
-    alert("Hotel added successfully!");
-  } catch (err) {
-    console.error(err);
-
-    if (err.response?.status === 401) {
-      alert("Unauthorized. Please login again as ADMIN.");
-      return;
-    }
-
-    if (err.response?.status === 403) {
-      alert("Forbidden. Your account does not have ADMIN permission.");
-      return;
-    }
-
-    const message =
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      "Failed to add hotel.";
-
-    alert(message);
   }
-}
 
   async function handleAddRoom(roomData) {
     try {
@@ -125,6 +127,26 @@ export function Admin() {
     }
   }
 
+  async function handleUpdateRoom(roomId, roomData) {
+    try {
+      await updateRoomType(roomId, roomData);
+
+      setEditingRoom(null);
+      await loadAdminData();
+
+      alert("Room type updated successfully!");
+    } catch (err) {
+      console.error(err);
+
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to update room type.";
+
+      alert(message);
+    }
+  }
+
   const totalRevenue = useMemo(() => {
     return bookings.reduce((sum, booking) => {
       return sum + Number(booking.totalPrice || booking.total || 0);
@@ -138,8 +160,8 @@ export function Admin() {
   const occupancyRate = useMemo(() => {
     if (rooms.length === 0) return 0;
 
-    const bookedRooms = bookings.filter((b) => {
-      const status = String(b.status || "").toUpperCase();
+    const bookedRooms = bookings.filter((booking) => {
+      const status = String(booking.status || "").toUpperCase();
 
       return (
         status === "CONFIRMED" ||
@@ -181,12 +203,12 @@ export function Admin() {
   }
 
   function getHotelNameById(hotelId) {
-    const hotel = hotels.find((h) => Number(h.id) === Number(hotelId));
+    const hotel = hotels.find((hotel) => Number(hotel.id) === Number(hotelId));
     return hotel?.name || "-";
   }
 
   function getRoomNameById(roomTypeId) {
-    const room = rooms.find((r) => Number(r.id) === Number(roomTypeId));
+    const room = rooms.find((room) => Number(room.id) === Number(roomTypeId));
     return room?.name || room?.typeName || "-";
   }
 
@@ -278,6 +300,7 @@ export function Admin() {
               getHotelNameById={getHotelNameById}
               formatMoney={formatMoney}
               onOpenAddRoomModal={() => setIsRoomModalOpen(true)}
+              onEditRoom={(room) => setEditingRoom(room)}
             />
           )}
 
@@ -306,6 +329,15 @@ export function Admin() {
           hotels={hotels}
           onClose={() => setIsRoomModalOpen(false)}
           onSubmit={handleAddRoom}
+        />
+      )}
+
+      {editingRoom && (
+        <UpdateRoomModal
+          room={editingRoom}
+          hotels={hotels}
+          onClose={() => setEditingRoom(null)}
+          onSubmit={handleUpdateRoom}
         />
       )}
     </div>
@@ -595,6 +627,7 @@ function RoomsTab({
   getHotelNameById,
   formatMoney,
   onOpenAddRoomModal,
+  onEditRoom,
 }) {
   return (
     <div className="fade-in">
@@ -726,7 +759,7 @@ function RoomsTab({
                       <div style={{ display: "flex", gap: "6px" }}>
                         <button
                           className="btn btn-outline btn-sm"
-                          onClick={() => alert("Edit Room API later")}
+                          onClick={() => onEditRoom(room)}
                         >
                           Edit
                         </button>
@@ -1126,7 +1159,7 @@ function AddRoomModal({ hotels, onClose, onSubmit }) {
     basePrice: "",
     amenities: "",
     totalRooms: 1,
-      imageUrl: "",
+    imageUrl: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -1150,6 +1183,7 @@ function AddRoomModal({ hotels, onClose, onSubmit }) {
       basePrice: Number(formData.basePrice),
       amenities: formData.amenities.trim(),
       totalRooms: Number(formData.totalRooms),
+      imageUrl: formData.imageUrl.trim(),
     };
 
     if (!roomPayload.hotelId) {
@@ -1281,16 +1315,17 @@ function AddRoomModal({ hotels, onClose, onSubmit }) {
               placeholder="Free WiFi, Sea View, Air Conditioning"
             />
           </div>
+
           <div className="form-group">
-  <label className="form-label">Room Image URL</label>
-  <input
-    className="form-input"
-    name="imageUrl"
-    value={formData.imageUrl}
-    onChange={handleChange}
-    placeholder="https://example.com/room-image.jpg"
-  />
-</div>
+            <label className="form-label">Room Image URL</label>
+            <input
+              className="form-input"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/room-image.jpg"
+            />
+          </div>
 
           <div className="hotel-modal-actions">
             <button
@@ -1308,6 +1343,201 @@ function AddRoomModal({ hotels, onClose, onSubmit }) {
               disabled={submitting}
             >
               {submitting ? "Adding..." : "Add Room"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function UpdateRoomModal({ room, hotels, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    hotelId: room.hotelId || "",
+    name: room.name || room.typeName || "",
+    capacity: room.capacity || room.maxGuests || 1,
+    basePrice: room.basePrice || room.pricePerNight || room.price || "",
+    amenities: room.amenities || "",
+    totalRooms: room.totalRooms || 1,
+    imageUrl: room.imageUrl || "",
+  });
+
+  const [submitting, setSubmitting] = useState(false);
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const roomPayload = {
+      name: formData.name.trim(),
+      capacity: Number(formData.capacity),
+      basePrice: Number(formData.basePrice),
+      amenities: formData.amenities.trim(),
+      totalRooms: Number(formData.totalRooms),
+      imageUrl: formData.imageUrl.trim(),
+    };
+
+    if (!roomPayload.name) {
+      alert("Room type name is required.");
+      return;
+    }
+
+    if (roomPayload.capacity < 1) {
+      alert("Capacity must be at least 1.");
+      return;
+    }
+
+    if (roomPayload.basePrice <= 0) {
+      alert("Base price must be greater than 0.");
+      return;
+    }
+
+    if (roomPayload.totalRooms < 1) {
+      alert("Total rooms must be at least 1.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onSubmit(room.id, roomPayload);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return createPortal(
+    <div className="modal-overlay open" id="update-room-modal-overlay">
+      <div className="modal hotel-modal">
+        <div className="modal-header">
+          <h2 className="modal-title">Update Room Type</h2>
+
+          <button type="button" className="modal-close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Hotel</label>
+            <select
+              className="form-input"
+              name="hotelId"
+              value={formData.hotelId}
+              onChange={handleChange}
+              disabled
+            >
+              <option value="">Select hotel</option>
+
+              {hotels.map((hotel) => (
+                <option key={hotel.id} value={hotel.id}>
+                  {hotel.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Room Type Name *</label>
+            <input
+              className="form-input"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g. Deluxe King Room"
+              required
+            />
+          </div>
+
+          <div className="hotel-modal-grid">
+            <div className="form-group">
+              <label className="form-label">Capacity *</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Total Rooms *</label>
+              <input
+                className="form-input"
+                type="number"
+                min="1"
+                name="totalRooms"
+                value={formData.totalRooms}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Base Price *</label>
+            <input
+              className="form-input"
+              type="number"
+              min="0.01"
+              step="0.01"
+              name="basePrice"
+              value={formData.basePrice}
+              onChange={handleChange}
+              placeholder="e.g. 120"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Amenities</label>
+            <input
+              className="form-input"
+              name="amenities"
+              value={formData.amenities}
+              onChange={handleChange}
+              placeholder="Free WiFi, Sea View, Air Conditioning"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Room Image URL</label>
+            <input
+              className="form-input"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/room-image.jpg"
+            />
+          </div>
+
+          <div className="hotel-modal-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting}
+            >
+              {submitting ? "Updating..." : "Update Room"}
             </button>
           </div>
         </form>

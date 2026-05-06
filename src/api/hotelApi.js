@@ -46,6 +46,17 @@ export const createRoomType = async (hotelId, roomData) => {
 
   return response.data;
 };
+export const updateRoomType = async (roomTypeId, roomData) => {
+  const response = await api.put(
+    `${API_BASE_URL}/room-types/${roomTypeId}`,
+    roomData,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return response.data;
+};
 
 // ================= BOOKINGS =================
 
