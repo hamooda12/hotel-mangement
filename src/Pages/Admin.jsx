@@ -877,9 +877,9 @@ function AddHotelModal({ onClose, onSubmit }) {
     imageUrl: "",
     color: "linear-gradient(135deg,#0369a1,#0f766e)",
     stars: 5,
-    rating: 4.5,
+    rating: 1.5,
     reviews: 0,
-    minPrice: 0,
+    minPrice: 100,
     amenitiesText: "",
   });
 
@@ -1009,7 +1009,7 @@ function AddHotelModal({ onClose, onSubmit }) {
               <input
                 className="form-input"
                 type="number"
-                min="0"
+                min="50"
                 name="minPrice"
                 value={formData.minPrice}
                 onChange={handleChange}
@@ -1024,8 +1024,8 @@ function AddHotelModal({ onClose, onSubmit }) {
               <input
                 className="form-input"
                 type="number"
-                min="0"
-                max="5"
+                min="1"
+                max="10"
                 step="0.1"
                 name="rating"
                 value={formData.rating}
@@ -1126,6 +1126,7 @@ function AddRoomModal({ hotels, onClose, onSubmit }) {
     basePrice: "",
     amenities: "",
     totalRooms: 1,
+      imageUrl: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -1280,6 +1281,16 @@ function AddRoomModal({ hotels, onClose, onSubmit }) {
               placeholder="Free WiFi, Sea View, Air Conditioning"
             />
           </div>
+          <div className="form-group">
+  <label className="form-label">Room Image URL</label>
+  <input
+    className="form-input"
+    name="imageUrl"
+    value={formData.imageUrl}
+    onChange={handleChange}
+    placeholder="https://example.com/room-image.jpg"
+  />
+</div>
 
           <div className="hotel-modal-actions">
             <button
