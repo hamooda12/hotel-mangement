@@ -816,12 +816,9 @@ const [createdBooking, setCreatedBooking] = useState(
                 View My Bookings
               </button>
 
-           <button
-  className="btn btn-outline"
-  onClick={() => navigate(returnTo || "/my-bookings")}
->
-  Back to My Bookings
-</button>
+              <button className="btn btn-outline" onClick={() => navigate("/")}>
+                Back to Home
+              </button>
             </div>
           </div>
         )}
