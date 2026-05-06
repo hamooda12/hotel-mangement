@@ -11,6 +11,8 @@ import {
   createHotel,
   createRoomType,
   updateRoomType,
+  deleteHotel,
+  deleteRoomType,
 } from "../api/hotelApi";
 
 export function Admin() {
@@ -216,6 +218,86 @@ export function Admin() {
     navigate(`/hotel/${hotelId}`);
   }
 
+  async function handleDeleteHotel(hotelId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this hotel?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteHotel(hotelId);
+
+      setHotels((prev) =>
+        prev.filter((hotel) => Number(hotel.id) !== Number(hotelId))
+      );
+
+      setRooms((prev) =>
+        prev.filter((room) => Number(room.hotelId) !== Number(hotelId))
+      );
+
+      alert("Hotel deleted successfully!");
+      await loadAdminData();
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 401) {
+        alert("Unauthorized. Please login again as ADMIN.");
+        return;
+      }
+
+      if (err.response?.status === 403) {
+        alert("Forbidden. Your account does not have ADMIN permission.");
+        return;
+      }
+
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to delete hotel.";
+
+      alert(message);
+    }
+  }
+
+  async function handleDeleteRoom(roomTypeId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this room type?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteRoomType(roomTypeId);
+
+      setRooms((prev) =>
+        prev.filter((room) => Number(room.id) !== Number(roomTypeId))
+      );
+
+      alert("Room type deleted successfully!");
+      await loadAdminData();
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 401) {
+        alert("Unauthorized. Please login again as ADMIN.");
+        return;
+      }
+
+      if (err.response?.status === 403) {
+        alert("Forbidden. Your account does not have ADMIN permission.");
+        return;
+      }
+
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to delete room type.";
+
+      alert(message);
+    }
+  }
+
   if (loading) {
     return (
       <div className="page-active" id="page-active-admin">
@@ -290,6 +372,7 @@ export function Admin() {
               hotels={hotels}
               handleViewHotel={handleViewHotel}
               onOpenAddHotelModal={() => setIsHotelModalOpen(true)}
+              onDeleteHotel={handleDeleteHotel}
             />
           )}
 
@@ -301,6 +384,7 @@ export function Admin() {
               formatMoney={formatMoney}
               onOpenAddRoomModal={() => setIsRoomModalOpen(true)}
               onEditRoom={(room) => setEditingRoom(room)}
+              onDeleteRoom={handleDeleteRoom}
             />
           )}
 
@@ -478,7 +562,12 @@ function OverviewTab({
   );
 }
 
-function HotelsTab({ hotels, handleViewHotel, onOpenAddHotelModal }) {
+function HotelsTab({
+  hotels,
+  handleViewHotel,
+  onOpenAddHotelModal,
+  onDeleteHotel,
+}) {
   return (
     <div className="fade-in">
       <div
@@ -604,7 +693,7 @@ function HotelsTab({ hotels, handleViewHotel, onOpenAddHotelModal }) {
 
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => alert("Delete Hotel API later")}
+                          onClick={() => onDeleteHotel(hotel.id)}
                         >
                           Delete
                         </button>
@@ -628,6 +717,7 @@ function RoomsTab({
   formatMoney,
   onOpenAddRoomModal,
   onEditRoom,
+  onDeleteRoom,
 }) {
   return (
     <div className="fade-in">
@@ -766,7 +856,7 @@ function RoomsTab({
 
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => alert("Delete Room API later")}
+                          onClick={() => onDeleteRoom(room.id)}
                         >
                           Delete
                         </button>

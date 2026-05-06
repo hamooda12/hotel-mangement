@@ -25,6 +25,14 @@ export const createHotel = async (hotelData) => {
 
   return response.data;
 };
+export const deleteHotel = async (hotelId) => {
+  const response = await api.delete(`${API_BASE_URL}/hotels/${hotelId}`, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+};
+
 
 // ================= ROOM TYPES =================
 
@@ -54,6 +62,14 @@ export const updateRoomType = async (roomTypeId, roomData) => {
       headers: getAuthHeaders(),
     }
   );
+
+  return response.data;
+};
+
+export const deleteRoomType = async (roomTypeId) => {
+  const response = await api.delete(`${API_BASE_URL}/room-types/${roomTypeId}`, {
+    headers: getAuthHeaders(),
+  });
 
   return response.data;
 };
