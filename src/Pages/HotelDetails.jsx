@@ -326,160 +326,161 @@ function BookRoom(room) {
                     gap: '1rem',
                   }}
                 >
-                  {roomTypes.map((room) => (
-                    <div
-                      key={room.id}
-                      className="room-card"
-                      style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        alignItems: 'stretch',
-                        flexWrap: 'wrap',
-                        border: '1px solid var(--border)',
-                        borderRadius: '18px',
-                        overflow: 'hidden',
-                        background: '#fff',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '240px',
-                          minHeight: '170px',
-                          background: hotel.color,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {room.imageUrl ? (
-                          <img
-                            src={room.imageUrl}
-                            alt={room.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '3rem',
-                            }}
-                          >
-                            🛏
-                          </div>
-                        )}
-                      </div>
+               {roomTypes.map((room) => (
+  <div
+    key={room.id}
+    className="room-card"
+    style={{
+      display: "flex",
+      gap: "1rem",
+      alignItems: "stretch",
+      flexWrap: "wrap",
+      border: "1px solid var(--border)",
+      borderRadius: "18px",
+      overflow: "hidden",
+      background: "var(--bg-card)",
+      color: "var(--text-main)",
+    }}
+  >
+    <div
+      style={{
+        width: "240px",
+        minHeight: "170px",
+        background: hotel.color,
+        flexShrink: 0,
+      }}
+    >
+      {room.imageUrl ? (
+        <img
+          src={room.imageUrl}
+          alt={room.name}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "3rem",
+          }}
+        >
+          🛏
+        </div>
+      )}
+    </div>
 
-                      <div
-                        style={{
-                          flex: 1,
-                          minWidth: '240px',
-                          padding: '1rem',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          gap: '1rem',
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <div>
-                          <h3
-                            className="amiri"
-                            style={{
-                              color: 'var(--navy)',
-                              fontSize: '1.25rem',
-                              marginBottom: '0.4rem',
-                            }}
-                          >
-                            {room.name}
-                          </h3>
+    <div
+      style={{
+        flex: 1,
+        minWidth: "240px",
+        padding: "1rem",
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "1rem",
+        flexWrap: "wrap",
+      }}
+    >
+      <div>
+        <h3
+          className="amiri"
+          style={{
+            color: "var(--navy)",
+            fontSize: "1.25rem",
+            marginBottom: "0.4rem",
+          }}
+        >
+          {room.name}
+        </h3>
 
-                          <div
-                            style={{
-                              fontSize: '13px',
-                              color: 'var(--text-muted)',
-                              marginBottom: '6px',
-                            }}
-                          >
-                            🏨 {room.hotelName}
-                          </div>
+        <div
+          style={{
+            fontSize: "13px",
+            color: "var(--text-muted)",
+            marginBottom: "6px",
+          }}
+        >
+          🏨 {room.hotelName}
+        </div>
 
-                          <div
-                            style={{
-                              fontSize: '13px',
-                              color: 'var(--text-muted)',
-                              marginBottom: '6px',
-                            }}
-                          >
-                            👥 Capacity: {room.capacity} guests
-                          </div>
+        <div
+          style={{
+            fontSize: "13px",
+            color: "var(--text-muted)",
+            marginBottom: "6px",
+          }}
+        >
+          👥 Capacity: {room.capacity} guests
+        </div>
 
-                          <div
-                            style={{
-                              fontSize: '13px',
-                              color: 'var(--text-muted)',
-                              marginBottom: '6px',
-                            }}
-                          >
-                            🛏 Total Rooms: {room.totalRooms}
-                          </div>
+        <div
+          style={{
+            fontSize: "13px",
+            color: "var(--text-muted)",
+            marginBottom: "6px",
+          }}
+        >
+          🛏 Total Rooms: {room.totalRooms}
+        </div>
 
-                          <div
-                            style={{
-                              fontSize: '13px',
-                              color: 'var(--text-mid)',
-                              marginTop: '0.5rem',
-                            }}
-                          >
-                            {room.amenities}
-                          </div>
-                        </div>
+        <div
+          style={{
+            fontSize: "13px",
+            color: "var(--text-mid)",
+            marginTop: "0.5rem",
+          }}
+        >
+          {room.amenities}
+        </div>
+      </div>
 
-                        <div
-                          style={{
-                            minWidth: '140px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-end',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontWeight: 800,
-                              color: 'var(--emerald)',
-                              fontSize: '1.3rem',
-                            }}
-                          >
-                            ${room.basePrice}
-                            <span
-                              style={{
-                                fontSize: '12px',
-                                color: 'var(--text-muted)',
-                                fontWeight: 400,
-                              }}
-                            >
-                              {' '}
-                              / night
-                            </span>
-                          </div>
+      <div
+        style={{
+          minWidth: "140px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 800,
+            color: "var(--emerald)",
+            fontSize: "1.3rem",
+          }}
+        >
+          ${room.basePrice}
+          <span
+            style={{
+              fontSize: "12px",
+              color: "var(--text-muted)",
+              fontWeight: 400,
+            }}
+          >
+            {" "}
+            / night
+          </span>
+        </div>
 
-                          <button
-                            className="btn btn-primary btn-sm"
-                            style={{ marginTop: '1rem' }}
-                            onClick={()=>BookRoom(room)}
-                          >
-                            Book Now
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+        <button
+          className="btn btn-primary btn-sm"
+          style={{ marginTop: "1rem" }}
+          onClick={() => BookRoom(room)}
+        >
+          Book Now
+        </button>
+      </div>
+    </div>
+  </div>
+))}
                 </div>
               ) : (
                 <div className="empty-state">
