@@ -230,7 +230,37 @@ setBookings(Array.isArray(data) ? data : []);
       >
         Details
       </button>
+{booking.status === "PENDING" && (
+  <button
+    className="btn btn-primary btn-sm"
+    onClick={() =>
+      navigate("/booking", {
+        state: {
+          mode: "confirm-existing",
+          returnTo: "/my-bookingsس",
 
+          bookingId: booking.id,
+          hotelId: booking.hotelId,
+          roomId: booking.roomTypeId,
+
+          hotelName: booking.hotelName,
+          roomName: booking.roomTypeName,
+
+          price: booking.totalPrice,
+          totalPrice: booking.totalPrice,
+
+          checkIn: booking.checkIn,
+          checkOut: booking.checkOut,
+          guests: booking.guests,
+
+          referenceCode: booking.referenceCode,
+        },
+      })
+    }
+  >
+    Confirm
+  </button>
+)}
       {canCancelBooking(booking.status) && (
         <button
           className="btn btn-danger btn-sm"

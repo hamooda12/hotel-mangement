@@ -10,7 +10,23 @@ function BookingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { hotelId, roomId, hotelName, roomName, price } = location.state || {};
+const {
+  mode,
+  returnTo = "/",
+  bookingId,
+  hotelId,
+  roomId,
+  hotelName,
+  roomName,
+  price,
+  totalPrice,
+  checkIn,
+  checkOut,
+  guests,
+  referenceCode,
+} = location.state || {};
+
+const isConfirmExisting = mode === "confirm-existing";
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -18,15 +34,23 @@ function BookingPage() {
     .toISOString()
     .split("T")[0];
 
-  const [bookingDates, setBookingDates] = useState({
-    checkIn: today,
-    checkOut: tomorrow,
-    guests: 1,
-  });
+const [bookingDates, setBookingDates] = useState({
+  checkIn: checkIn || today,
+  checkOut: checkOut || tomorrow,
+  guests: guests || 1,
+});
 
-  const [bookingStep, setBookingStep] = useState(1);
+  const [bookingStep, setBookingStep] = useState(isConfirmExisting ? 2 : 1);
   const [loading, setLoading] = useState(false);
-  const [createdBooking, setCreatedBooking] = useState(null);
+const [createdBooking, setCreatedBooking] = useState(
+  isConfirmExisting
+    ? {
+        id: bookingId,
+        referenceCode,
+        totalPrice,
+      }
+    : null
+);
   const [confirmationCode, setConfirmationCode] = useState("");
 
   const [guestInfo, setGuestInfo] = useState({
@@ -270,10 +294,10 @@ function BookingPage() {
       >
         <button
           className="btn btn-outline btn-sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(isConfirmExisting ? "/my-bookings" : -1)}
           style={{ marginBottom: "1.5rem" }}
         >
-          ← Back to Hotel
+       {isConfirmExisting ? "← Back to My Bookings" : "← Back to Hotel"}
         </button>
 
         <h1
@@ -648,13 +672,19 @@ function BookingPage() {
                   marginTop: "1.5rem",
                 }}
               >
-                <button
-                  className="btn btn-outline"
-                  onClick={() => setBookingStep(1)}
-                  disabled={loading}
-                >
-                  ← Back
-                </button>
+               <button
+  className="btn btn-outline"
+  onClick={() => {
+    if (isConfirmExisting) {
+      navigate("/my-bookings");
+    } else {
+      setBookingStep(1);
+    }
+  }}
+  disabled={loading}
+>
+  ← Back
+</button>
 
                 <button
                   className="btn btn-primary"
@@ -786,9 +816,12 @@ function BookingPage() {
                 View My Bookings
               </button>
 
-              <button className="btn btn-outline" onClick={() => navigate("/")}>
-                Back to Home
-              </button>
+           <button
+  className="btn btn-outline"
+  onClick={() => navigate(returnTo || "/my-bookings")}
+>
+  Back to My Bookings
+</button>
             </div>
           </div>
         )}
