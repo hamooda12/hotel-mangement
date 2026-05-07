@@ -76,6 +76,42 @@ export function Hotels() {
     return Number(room.capacity || room.maxGuests || room.guests || 0);
   }
 
+  function getStartingPrice(hotel) {
+    const roomPrices = getRoomTypes(hotel)
+      .map((room) => Number(room.basePrice || room.pricePerNight || room.price || 0))
+      .filter((price) => price > 0);
+
+    if (Number(hotel.minPrice || 0) > 0) return Number(hotel.minPrice);
+    if (roomPrices.length > 0) return Math.min(...roomPrices);
+    return 0;
+  }
+
+  function formatMoney(value) {
+    const number = Number(value || 0);
+    return `$${number.toLocaleString()}`;
+  }
+
+  function getRatingLabel(rating) {
+    const value = Number(rating || 0);
+    if (value >= 4.7) return 'Exceptional';
+    if (value >= 4.3) return 'Wonderful';
+    if (value >= 4) return 'Very good';
+    if (value >= 3.5) return 'Good';
+    return 'Guest rated';
+  }
+
+  function getAmenities(hotel) {
+    if (Array.isArray(hotel.amenities)) return hotel.amenities;
+    if (typeof hotel.amenities === 'string') {
+      return hotel.amenities
+        .split(',')
+        .map((amenity) => amenity.trim())
+        .filter(Boolean);
+    }
+
+    return [];
+  }
+
   const cityOptions = useMemo(() => {
     return [...new Set(HOTELS.map((hotel) => hotel.city).filter(Boolean))].sort();
   }, [HOTELS]);
@@ -101,6 +137,16 @@ export function Hotels() {
   const guestOptions = useMemo(() => {
     return Array.from({ length: maxGuests }, (_, index) => index + 1);
   }, [maxGuests]);
+
+  const featuredHotel = useMemo(() => {
+    if (HOTELS.length === 0) return null;
+
+    return [...HOTELS].sort((a, b) => {
+      const ratingDiff = Number(b.rating || 0) - Number(a.rating || 0);
+      if (ratingDiff !== 0) return ratingDiff;
+      return Number(b.reviews || 0) - Number(a.reviews || 0);
+    })[0];
+  }, [HOTELS]);
 
   function handleFilterChange(e) {
     const { name, value } = e.target;
@@ -159,11 +205,17 @@ export function Hotels() {
 
   if (loading) {
     return (
-      <div className="page-active" id="page-search">
-        <div className="container" style={{ padding: '3rem 0' }}>
-          <h2 className="amiri" style={{ color: 'var(--navy)' }}>
-            Loading hotels...
-          </h2>
+      <div className="page-active hotels-page" id="page-search">
+        <div className="hotels-loading-shell">
+          <div className="hotels-loader-card">
+            <div className="hotels-loader-visual">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <h2 className="amiri">Finding exceptional stays...</h2>
+            <p>Curating hotel options, rooms, ratings, and amenities for you.</p>
+          </div>
         </div>
       </div>
     );
@@ -171,16 +223,13 @@ export function Hotels() {
 
   if (error) {
     return (
-      <div className="page-active" id="page-search">
-        <div className="container" style={{ padding: '3rem 0' }}>
-          <div className="empty-state">
-            <div className="empty-icon">⚠️</div>
-            <div>{error}</div>
-            <button
-              className="btn btn-outline btn-sm"
-              style={{ marginTop: '1rem' }}
-              onClick={() => window.location.reload()}
-            >
+      <div className="page-active hotels-page" id="page-search">
+        <div className="container hotels-error-container">
+          <div className="hotels-empty-panel">
+            <div className="hotels-empty-icon">⚠️</div>
+            <h2 className="amiri">We couldn’t load the hotel collection</h2>
+            <p>{error}</p>
+            <button className="btn btn-outline btn-sm" onClick={() => window.location.reload()}>
               Try Again
             </button>
           </div>
@@ -190,44 +239,127 @@ export function Hotels() {
   }
 
   return (
-    <div className="page-active" id="page-search">
-      <div className="container">
-        <div style={{ padding: '2rem 0 1rem' }}>
-          <h1
-            className="amiri"
-            style={{ color: 'var(--navy)', fontSize: '2rem' }}
-          >
-            Discover Our Hotels
-          </h1>
+    <div className="page-active hotels-page" id="page-search">
+      <section className="hotels-hero-shell">
+        <div className="container hotels-hero">
+          <div className="hotels-hero-copy">
+            <div className="hotels-eyebrow">Curated luxury stays</div>
+            <h1 className="amiri">Find your next memorable stay</h1>
+            <p>
+              Browse premium hotels with verified details, room options, guest ratings,
+              and a refined booking experience inspired by world-class travel platforms.
+            </p>
 
-          <p style={{ color: 'var(--text-muted)' }}>
-            Find your perfect stay across our curated collection
-          </p>
+            <div className="hotels-hero-stats" aria-label="Hotel search summary">
+              <div>
+                <strong>{HOTELS.length}</strong>
+                <span>listed hotels</span>
+              </div>
+              <div>
+                <strong>{cityOptions.length}</strong>
+                <span>destinations</span>
+              </div>
+              <div>
+                <strong>{roomTypeOptions.length}</strong>
+                <span>room styles</span>
+              </div>
+            </div>
+          </div>
+
+          {featuredHotel && (
+            <button
+              className="hotels-feature-card"
+              onClick={() => viewHotel(featuredHotel)}
+              type="button"
+              aria-label={`Open ${featuredHotel.name}`}
+            >
+              <div
+                className="hotels-feature-image"
+                style={{
+                  backgroundImage: featuredHotel.imageUrl
+                    ? `url(${featuredHotel.imageUrl})`
+                    : featuredHotel.color || 'linear-gradient(135deg,#0369a1,#0f766e)',
+                }}
+              >
+                <div className="hotels-feature-badge">Top pick</div>
+              </div>
+              <div className="hotels-feature-content">
+                <span>{featuredHotel.city || 'Featured destination'}</span>
+                <strong>{featuredHotel.name}</strong>
+                <div>
+                  {getRatingLabel(featuredHotel.rating)} · {featuredHotel.rating ?? '-'} ·{' '}
+                  {featuredHotel.reviews ?? 0} reviews
+                </div>
+              </div>
+            </button>
+          )}
+        </div>
+      </section>
+
+      <div className="container hotels-search-container">
+        <div className="hotels-search-strip">
+          <div className="hotels-search-item">
+            <label>Destination</label>
+            <select className="form-input" name="city" value={filters.city} onChange={handleFilterChange}>
+              <option value="">All cities</option>
+              {cityOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="hotels-search-item">
+            <label>Room type</label>
+            <select
+              className="form-input"
+              name="roomType"
+              value={filters.roomType}
+              onChange={handleFilterChange}
+            >
+              <option value="">Any room</option>
+              {roomTypeOptions.map((roomType) => (
+                <option key={roomType} value={roomType}>
+                  {roomType}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="hotels-search-item hotels-search-item-small">
+            <label>Guests</label>
+            <select className="form-input" name="guests" value={filters.guests} onChange={handleFilterChange}>
+              <option value="">Any</option>
+              {guestOptions.map((guestCount) => (
+                <option key={guestCount} value={guestCount}>
+                  {guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button className="btn btn-primary hotels-search-action" type="button">
+            Search stays
+          </button>
         </div>
 
-        <div className="search-layout">
-          <div className="filters-panel">
-            <h3
-              style={{
-                fontFamily: "'Amiri',serif",
-                color: 'var(--navy)',
-                marginBottom: '1.25rem',
-                fontSize: '1.1rem',
-              }}
-            >
-              ✦ Filters
-            </h3>
+        <div className="search-layout hotels-results-layout">
+          <aside className="filters-panel hotels-filter-panel">
+            <div className="filters-heading">
+              <span>✦ Filters</span>
+              <button type="button" onClick={resetFilters}>Clear</button>
+            </div>
+
+            <div className="filter-summary-card">
+              <strong>{filteredHotels.length}</strong>
+              <span>properties match your current search</span>
+            </div>
 
             <div className="form-group">
               <label className="form-label">Destination</label>
-              <select
-                className="form-input"
-                name="city"
-                value={filters.city}
-                onChange={handleFilterChange}
-              >
+              <select className="form-input" name="city" value={filters.city} onChange={handleFilterChange}>
                 <option value="">All Cities</option>
-
                 {cityOptions.map((city) => (
                   <option key={city} value={city}>
                     {city}
@@ -245,7 +377,6 @@ export function Hotels() {
                 onChange={handleFilterChange}
               >
                 <option value="">All Room Types</option>
-
                 {roomTypeOptions.map((roomType) => (
                   <option key={roomType} value={roomType}>
                     {roomType}
@@ -256,14 +387,8 @@ export function Hotels() {
 
             <div className="form-group">
               <label className="form-label">Guests</label>
-              <select
-                className="form-input"
-                name="guests"
-                value={filters.guests}
-                onChange={handleFilterChange}
-              >
+              <select className="form-input" name="guests" value={filters.guests} onChange={handleFilterChange}>
                 <option value="">Any Guests</option>
-
                 {guestOptions.map((guestCount) => (
                   <option key={guestCount} value={guestCount}>
                     {guestCount} {guestCount === 1 ? 'Guest' : 'Guests'}
@@ -272,130 +397,120 @@ export function Hotels() {
               </select>
             </div>
 
-            <button
-              className="btn btn-outline"
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                marginTop: '0.5rem',
-              }}
-              onClick={resetFilters}
-            >
-              Reset Filters
-            </button>
-          </div>
-
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1.25rem',
-                flexWrap: 'wrap',
-                gap: '10px',
-              }}
-            >
-              <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                {filteredHotels.length} hotels found
-              </div>
+            <div className="filter-trust-card">
+              <div>✓ No hidden visual clutter</div>
+              <div>✓ Curated hotel collection</div>
+              <div>✓ Fast reservation flow</div>
             </div>
 
-            <div className="hotels-grid">
+            <button className="btn btn-outline filters-reset-btn" onClick={resetFilters}>
+              Reset Filters
+            </button>
+          </aside>
+
+          <main className="hotels-results-panel">
+            <div className="hotels-results-topbar">
+              <div>
+                <span className="hotels-results-count">{filteredHotels.length} hotels found</span>
+                <p>Sorted by a premium recommended experience</p>
+              </div>
+
+              <div className="hotels-view-chip">List view · premium cards</div>
+            </div>
+
+            <div className="hotels-list">
               {visibleHotels.length > 0 ? (
-                visibleHotels.map((hotel) => (
-                  <div
-                    key={hotel.id}
-                    className="hotel-card"
-                    onClick={() => viewHotel(hotel)}
-                  >
-                    <div
-                      className="hotel-img"
-                      style={{ background: hotel.color }}
-                    >
-                      {hotel.imageUrl ? (
-                        <img src={hotel.imageUrl} alt={hotel.name} />
-                      ) : (
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '3rem',
-                          }}
-                        >
-                          🏨
-                        </div>
-                      )}
+                visibleHotels.map((hotel) => {
+                  const amenities = getAmenities(hotel).slice(0, 4);
+                  const startingPrice = getStartingPrice(hotel);
+                  const roomCount = getRoomTypes(hotel).length;
 
-                      <div className="hotel-img-badge">
-                        <span className="badge badge-gold">
-                          {'⭐'.repeat(Number(hotel.stars || 0))}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="hotel-card-body">
-                      <div className="hotel-name">{hotel.name}</div>
-
-                      <div className="hotel-location">📍 {hotel.city}</div>
-
-                      <div
+                  return (
+                    <article key={hotel.id} className="hotel-card hotel-result-card">
+                      <button
+                        type="button"
+                        className="hotel-image-panel"
+                        onClick={() => viewHotel(hotel)}
+                        aria-label={`View ${hotel.name}`}
                         style={{
-                          display: 'flex',
-                          gap: '6px',
-                          flexWrap: 'wrap',
-                          marginBottom: '12px',
+                          backgroundImage: hotel.imageUrl
+                            ? `url(${hotel.imageUrl})`
+                            : hotel.color || 'linear-gradient(135deg,#0369a1,#0f766e)',
                         }}
                       >
-                        {(hotel.amenities || []).slice(0, 3).map((amenity) => (
-                          <span
-                            key={amenity}
-                            style={{
-                              fontSize: '11px',
-                              background: 'var(--emerald-xlight)',
-                              color: 'var(--emerald)',
-                              padding: '3px 8px',
-                              borderRadius: '20px',
-                            }}
-                          >
-                            {amenity}
-                          </span>
-                        ))}
-                      </div>
+                        {!hotel.imageUrl && <span className="hotel-image-placeholder">🏨</span>}
+                        <span className="hotel-photo-count">Premium stay</span>
+                        <span className="hotel-stars-floating">
+                          {'⭐'.repeat(Number(hotel.stars || 0)) || 'Featured'}
+                        </span>
+                      </button>
 
-                      <div className="hotel-footer">
-                        <div className="rating-center">
-                          <div className="stars">
-                            {'⭐'.repeat(Math.floor(Number(hotel.rating || 0)))}
+                      <div className="hotel-result-body">
+                        <div className="hotel-result-main">
+                          <div className="hotel-result-kicker">
+                            <span>{hotel.city || 'Luxury destination'}</span>
+                            {roomCount > 0 && <span>{roomCount} room options</span>}
                           </div>
 
-                          <div
-                            style={{
-                              fontSize: '12px',
-                              color: 'var(--text-muted)',
-                            }}
-                          >
-                            {hotel.rating ?? '-'} ({hotel.reviews ?? 0} reviews)
+                          <button type="button" className="hotel-title-btn" onClick={() => viewHotel(hotel)}>
+                            {hotel.name}
+                          </button>
+
+                          <div className="hotel-location-line">📍 {hotel.address || hotel.city || 'Prime hotel location'}</div>
+
+                          {hotel.description && (
+                            <p className="hotel-description">
+                              {hotel.description.length > 150
+                                ? `${hotel.description.slice(0, 150)}...`
+                                : hotel.description}
+                            </p>
+                          )}
+
+                          <div className="hotel-amenities-row">
+                            {amenities.length > 0 ? (
+                              amenities.map((amenity) => <span key={amenity}>{amenity}</span>)
+                            ) : (
+                              <>
+                                <span>Free WiFi</span>
+                                <span>Comfort rooms</span>
+                                <span>Guest support</span>
+                              </>
+                            )}
                           </div>
                         </div>
+
+                        <aside className="hotel-booking-panel">
+                          <div className="hotel-rating-box">
+                            <div>
+                              <strong>{getRatingLabel(hotel.rating)}</strong>
+                              <span>{hotel.reviews ?? 0} reviews</span>
+                            </div>
+                            <b>{hotel.rating ?? '-'}</b>
+                          </div>
+
+                          <div className="hotel-price-box">
+                            <span>Starting from</span>
+                            <strong>{startingPrice > 0 ? formatMoney(startingPrice) : 'View rates'}</strong>
+                            <small>per night</small>
+                          </div>
+
+                          <button className="btn btn-primary hotel-view-btn" onClick={() => viewHotel(hotel)}>
+                            See availability
+                          </button>
+                          <button className="hotel-subtle-link" type="button" onClick={() => viewHotel(hotel)}>
+                            View hotel details
+                          </button>
+                        </aside>
                       </div>
-                    </div>
-                  </div>
-                ))
+                    </article>
+                  );
+                })
               ) : (
-                <div className="empty-state" style={{ gridColumn: '1/-1' }}>
-                  <div className="empty-icon">🏨</div>
-
-                  <div>No hotels match your filters</div>
-
-                  <button
-                    className="btn btn-outline btn-sm"
-                    style={{ marginTop: '1rem' }}
-                    onClick={resetFilters}
-                  >
+                <div className="hotels-empty-panel">
+                  <div className="hotels-empty-icon">🏨</div>
+                  <h2 className="amiri">No hotels match your filters</h2>
+                  <p>Try changing the destination, room type, or guest count.</p>
+                  <button className="btn btn-outline btn-sm" onClick={resetFilters}>
                     Reset Filters
                   </button>
                 </div>
@@ -403,7 +518,7 @@ export function Hotels() {
             </div>
 
             {totalPages > 1 && (
-              <div className="pagination">
+              <div className="pagination hotels-pagination">
                 {Array.from({ length: totalPages }, (_, i) => (
                   <button
                     key={i}
@@ -415,7 +530,7 @@ export function Hotels() {
                 ))}
               </div>
             )}
-          </div>
+          </main>
         </div>
       </div>
     </div>

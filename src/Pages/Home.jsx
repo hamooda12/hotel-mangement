@@ -137,6 +137,11 @@ export function Home() {
     },
   ];
 
+  const featuredHotels = useMemo(() => HOTELS.slice(0, 3), [HOTELS]);
+  const heroHotel = featuredHotels[0] || HOTELS[0];
+  const secondaryHotel = featuredHotels[1] || HOTELS[1] || heroHotel;
+  const thirdHotel = featuredHotels[2] || HOTELS[2] || secondaryHotel;
+
   function viewHotel(id) {
     navigate(`/hotel/${id}`);
   }
@@ -155,179 +160,201 @@ export function Home() {
     navigate(`/search?${params.toString()}`);
   }
 
-  function hotelCardHTML(h) {
+  function hotelCardHTML(h, index = 0) {
     const amenities = Array.isArray(h.amenities) ? h.amenities : [];
 
     return (
-      <div className="hotel-card" onClick={() => viewHotel(h.id)} key={h.id}>
-        <div className="hotel-img" style={{ background: h.color }}>
-          <img src={h.imageUrl} alt={h.name} />
+      <article
+        className={`home-hotel-card home-hotel-card-${index + 1}`}
+        onClick={() => viewHotel(h.id)}
+        key={h.id}
+      >
+        <div className="home-hotel-media" style={{ background: h.color }}>
+          {h.imageUrl ? <img src={h.imageUrl} alt={h.name} /> : <span>🏨</span>}
 
-          <div className="hotel-img-badge">
-            <span className="badge badge-gold">
-              {"⭐".repeat(Number(h.stars || 0))}
-            </span>
+          <div className="home-hotel-media-shade" />
+          <div className="home-hotel-floating-rating">
+            <strong>{Number(h.rating || 0).toFixed(1)}</strong>
+            <span>{h.reviews || 0} reviews</span>
+          </div>
+          <div className="home-hotel-stars">
+            {"⭐".repeat(Number(h.stars || 0))}
           </div>
         </div>
 
-        <div className="hotel-card-body">
-          <div className="hotel-name">{h.name}</div>
-          <div className="hotel-location">📍 {h.city}</div>
+        <div className="home-hotel-content">
+          <div>
+            <div className="home-hotel-location">📍 {h.city || "Premium destination"}</div>
+            <h3>{h.name}</h3>
+          </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "6px",
-              flexWrap: "wrap",
-              marginBottom: "12px",
-            }}
-          >
+          <div className="home-hotel-amenities">
             {amenities.slice(0, 3).map((a) => (
-              <span
-                key={a}
-                style={{
-                  fontSize: "11px",
-                  background: "var(--emerald-xlight)",
-                  color: "var(--emerald)",
-                  padding: "3px 8px",
-                  borderRadius: "20px",
-                }}
-              >
-                {a}
-              </span>
+              <span key={a}>{a}</span>
             ))}
+            {amenities.length === 0 && (
+              <>
+                <span>Free WiFi</span>
+                <span>Comfort Stay</span>
+                <span>Verified</span>
+              </>
+            )}
           </div>
 
-          <div className="hotel-footer">
-            <div className="rating-center">
-              <div className="stars">
-                {"⭐".repeat(Math.floor(Number(h.rating || 0)))}
-              </div>
-
-              <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                {h.rating || 0} ({h.reviews || 0} reviews)
-              </div>
+          <div className="home-hotel-bottom-row">
+            <div>
+              <span className="home-price-label">Starting from</span>
+              <strong>${Number(h.minPrice || 0).toLocaleString()}</strong>
             </div>
+            <button className="home-card-link" type="button">
+              View rooms →
+            </button>
           </div>
         </div>
-      </div>
+      </article>
     );
   }
 
-  function teamCardHTML(m) {
+  function teamCardHTML(m, index) {
     return (
-      <div className="team-card" key={m.name}>
-        <div className="team-avatar">
+      <article className="home-team-card" key={m.name}>
+        <div className="home-team-number">0{index + 1}</div>
+        <div className="home-team-avatar">
           <img src={m.image} alt={m.name} />
         </div>
-
-        <div
-          style={{
-            fontFamily: "'Amiri', serif",
-            fontSize: "1.1rem",
-            color: "var(--navy)",
-            marginBottom: "4px",
-          }}
-        >
-          {m.name}
+        <div className="home-team-info">
+          <h3>{m.name}</h3>
+          <p>{m.role}</p>
         </div>
-
-        <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-          {m.role}
-        </div>
-      </div>
+      </article>
     );
   }
 
   return (
-    <div className="page active" id="page-home">
-      <div className="hero geo-bg">
-        <div className="hero-content fade-in">
-          <div className="hero-eyebrow">
-            <div className="hero-eyebrow-line"></div>
-            <span>Authentic Stays</span>
-          </div>
+    <div className="page active home-page" id="page-home">
+      <section className="home-hero">
+        <div className="home-hero-background" />
+        <div className="home-hero-glow home-hero-glow-one" />
+        <div className="home-hero-glow home-hero-glow-two" />
 
-          <h1>
-            Discover Comfort
-            <br />
-            Across <span>Every Destination</span>
-          </h1>
-
-          <p>
-            Explore carefully selected hotels across multiple cities and countries.
-            Find comfortable rooms, trusted amenities, and stays that match your
-            trip wherever you are going.
-          </p>
-
-          <div className="hero-actions">
-            <button
-              className="btn btn-gold btn-lg"
-              onClick={() => navigate("/search")}
-            >
-              ✦ Discover Hotels
-            </button>
-
-            <button
-              className="btn btn-lg"
-              style={{
-                border: "1.5px solid rgba(255,255,255,0.4)",
-                color: "#fff",
-                background: "transparent",
-              }}
-              onClick={() => {
-                document.getElementById("about-section")?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                });
-              }}
-            >
-              Learn More
-            </button>
-          </div>
-
-          <div className="hero-stats">
-            <div style={{ textAlign: "center" }}>
-              <span className="stat-num">{stats.hotelsCount}</span>
-              <span className="stat-label">Selected Hotels</span>
+        <div className="home-hero-shell">
+          <div className="home-hero-copy fade-in">
+            <div className="home-kicker">
+              <span></span>
+              Luxury hotel booking experience
             </div>
 
-            <div style={{ textAlign: "center" }}>
-              <span className="stat-num">{stats.citiesCount}</span>
-              <span className="stat-label">Cities</span>
+            <h1>
+              Where every stay feels <span>handpicked</span> for you.
+            </h1>
+
+            <p>
+              Discover selected hotels, compare rooms with confidence, and book a
+              stay that feels premium from the first click to the final
+              confirmation.
+            </p>
+
+            <div className="home-hero-actions">
+              <button
+                className="btn btn-gold btn-lg"
+                onClick={() => navigate("/search")}
+              >
+                Explore Hotels →
+              </button>
+
+              <button
+                className="home-ghost-button"
+                onClick={() => {
+                  document.getElementById("featured-hotels-section")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+              >
+                See featured stays
+              </button>
             </div>
 
-            <div style={{ textAlign: "center" }}>
-              <span className="stat-num">{stats.roomTypesCount}+</span>
-              <span className="stat-label">Room Types</span>
+            <div className="home-hero-trust-row">
+              <div>
+                <strong>Verified stays</strong>
+                <span>Real hotels, rooms, prices and amenities</span>
+              </div>
+              <div>
+                <strong>Fast checkout</strong>
+                <span>Simple booking flow with reservation tracking</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="home-hero-showcase fade-in">
+            <div
+              className="home-showcase-main"
+              onClick={() => heroHotel?.id && viewHotel(heroHotel.id)}
+            >
+              {heroHotel?.imageUrl ? (
+                <img src={heroHotel.imageUrl} alt={heroHotel.name} />
+              ) : (
+                <div className="home-showcase-placeholder">🏨</div>
+              )}
+              <div className="home-showcase-overlay">
+                <span>Featured property</span>
+                <h2>{heroHotel?.name || "Premium Hotel Collection"}</h2>
+                <p>{heroHotel?.city || "Discover your next luxury stay"}</p>
+              </div>
+            </div>
+
+            <div className="home-showcase-stack">
+              <div
+                className="home-showcase-mini"
+                onClick={() => secondaryHotel?.id && viewHotel(secondaryHotel.id)}
+              >
+                {secondaryHotel?.imageUrl ? (
+                  <img src={secondaryHotel.imageUrl} alt={secondaryHotel.name} />
+                ) : (
+                  <span>🌴</span>
+                )}
+                <div>
+                  <strong>{secondaryHotel?.name || "Curated rooms"}</strong>
+                  <small>{secondaryHotel?.city || "Comfort meets style"}</small>
+                </div>
+              </div>
+
+              <div
+                className="home-showcase-mini home-showcase-mini-dark"
+                onClick={() => thirdHotel?.id && viewHotel(thirdHotel.id)}
+              >
+                {thirdHotel?.imageUrl ? (
+                  <img src={thirdHotel.imageUrl} alt={thirdHotel.name} />
+                ) : (
+                  <span>🛎</span>
+                )}
+                <div>
+                  <strong>{thirdHotel?.name || "Exclusive offers"}</strong>
+                  <small>{thirdHotel?.city || "Find your best match"}</small>
+                </div>
+              </div>
+            </div>
+
+            <div className="home-floating-review">
+              <span>Guest confidence</span>
+              <strong>4.8/5</strong>
+              <small>Average premium stay experience</small>
             </div>
           </div>
         </div>
-      </div>
 
-      <div
-        className="container"
-        style={{ position: "relative", zIndex: 2, marginTop: "-30px" }}
-      >
-        <div className="search-widget">
-          <h3
-            style={{
-              fontFamily: "'Amiri',serif",
-              color: "var(--navy)",
-              fontSize: "1.2rem",
-              marginBottom: "1.25rem",
-            }}
-          >
-            ✦ Search Available Hotels
-          </h3>
+        <div className="home-search-dock">
+          <div className="home-search-heading">
+            <span>Start your journey</span>
+            <strong>Find your ideal stay</strong>
+          </div>
 
-          <div className="search-grid">
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">Destination</label>
-
-              <select className="form-input" id="home-city">
+          <div className="home-search-grid">
+            <div className="home-search-field">
+              <label>Destination</label>
+              <select id="home-city">
                 <option value="">All Destinations</option>
-
                 {cityOptions.map((city) => (
                   <option key={city} value={city}>
                     {city}
@@ -336,12 +363,10 @@ export function Home() {
               </select>
             </div>
 
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">Room Type</label>
-
-              <select className="form-input" id="home-room-type">
+            <div className="home-search-field">
+              <label>Room Type</label>
+              <select id="home-room-type">
                 <option value="">All Room Types</option>
-
                 {roomTypeOptions.map((roomType) => (
                   <option key={roomType} value={roomType}>
                     {roomType}
@@ -350,12 +375,10 @@ export function Home() {
               </select>
             </div>
 
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">Guests</label>
-
-              <select className="form-input" id="home-guests">
+            <div className="home-search-field">
+              <label>Guests</label>
+              <select id="home-guests">
                 <option value="">Any Guests</option>
-
                 {guestOptions.map((guest) => (
                   <option key={guest} value={guest}>
                     {guest} {guest === 1 ? "Guest" : "Guests"}
@@ -364,117 +387,114 @@ export function Home() {
               </select>
             </div>
 
-            <button
-              className="btn btn-primary"
-              style={{ height: "42px", whiteSpace: "nowrap" }}
-              onClick={doHomeSearch}
-            >
-              Search →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <section className="section" style={{ background: "var(--bg-mid)" }}>
-        <div className="container">
-          <div className="section-header">
-            <div className="section-eyebrow">Featured Destinations</div>
-            <h2 className="section-title">Exquisite Hotels Await</h2>
-            <div className="section-divider">
-              <div className="divider-line"></div>
-              <div className="divider-diamond"></div>
-              <div className="divider-line"></div>
-            </div>
-          </div>
-
-          <div className="hotels-grid" id="featured-hotels">
-            {HOTELS.slice(0, 3).map((h) => hotelCardHTML(h))}
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-            <button className="btn btn-outline" onClick={() => navigate("/search")}>
-              View All Hotels →
+            <button className="home-search-button" onClick={doHomeSearch}>
+              Search stays
             </button>
           </div>
         </div>
       </section>
 
-      <section className="section geo-bg" id="about-section">
+      <section className="home-stats-strip">
+        <div className="container home-stats-grid">
+          <div className="home-stat-card">
+            <span>{stats.hotelsCount}</span>
+            <strong>Selected Hotels</strong>
+            <p>Carefully prepared stays across the platform.</p>
+          </div>
+          <div className="home-stat-card">
+            <span>{stats.citiesCount}</span>
+            <strong>Cities Covered</strong>
+            <p>Explore stays across different destinations.</p>
+          </div>
+          <div className="home-stat-card">
+            <span>{stats.roomTypesCount}+</span>
+            <strong>Room Types</strong>
+            <p>Choose rooms that match your trip and guests.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-featured-section" id="featured-hotels-section">
         <div className="container">
-          <div className="about-grid">
-            <div>
-              <div className="section-eyebrow">Our Story</div>
+          <div className="home-section-header">
+            <span>Featured destinations</span>
+            <h2>Hotels that make the first impression unforgettable.</h2>
+            <p>
+              A polished collection of stays with images, amenities, rooms and
+              booking flow designed to feel real and trustworthy.
+            </p>
+          </div>
 
-              <h2
-                className="section-title"
-                style={{ textAlign: "left", marginBottom: "1.5rem" }}
-              >
-                Saladin Boutique <br /> Hotel
-              </h2>
-
-              <p
-                style={{
-                  color: "var(--text-mid)",
-                  lineHeight: "1.9",
-                  marginBottom: "1rem",
-                }}
-              >
-                Nestled in the heart of Jerusalem’s Old City, Saladin Boutique
-                Hotel offers a warm and intimate stay just a short walk from the
-                Western Wall, Via Dolorosa, and some of the city’s most
-                meaningful historic landmarks.
-              </p>
-
-              <p
-                style={{
-                  color: "var(--text-mid)",
-                  lineHeight: "1.9",
-                  marginBottom: "2rem",
-                }}
-              >
-                With only a small collection of comfortable rooms, our hotel
-                blends local character, modern convenience, and genuine
-                hospitality. Guests can enjoy complimentary Wi-Fi, relaxing
-                shared spaces, on-site dining, and easy access to the timeless
-                streets of Jerusalem.
-              </p>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "1rem",
-                }}
-              >
-                <div className="amenity">📍 Old City Location</div>
-                <div className="amenity">☕ Coffee Shop</div>
-                <div className="amenity">🍽 Restaurant</div>
-                <div className="amenity">🛏 Boutique Rooms</div>
+          <div className="home-hotels-grid" id="featured-hotels">
+            {featuredHotels.length > 0 ? (
+              featuredHotels.map((h, index) => hotelCardHTML(h, index))
+            ) : (
+              <div className="home-empty-panel">
+                <div>🏨</div>
+                <strong>No hotels loaded yet</strong>
+                <p>Add hotels from the admin dashboard to feature them here.</p>
               </div>
-            </div>
+            )}
+          </div>
 
-            <div className="about-img-box"></div>
+          <div className="home-center-actions">
+            <button className="btn btn-outline" onClick={() => navigate("/search")}>
+              View all hotels →
+            </button>
           </div>
         </div>
       </section>
 
-      <section className="section" id="about" style={{ background: "var(--bg-mid)" }}>
-        <div className="container">
-          <div className="section-header">
-            <div className="section-eyebrow">Our Team</div>
-            <h2 className="section-title">Meet the Visionaries</h2>
-            <div className="section-divider">
-              <div className="divider-line"></div>
-              <div className="divider-diamond"></div>
-              <div className="divider-line"></div>
+      <section className="home-experience-section" id="about-section">
+        <div className="container home-experience-grid">
+          <div className="home-experience-copy">
+            <span className="home-section-kicker">The experience</span>
+            <h2>Designed like a real booking platform, built with care.</h2>
+            <p>
+              AlQasr brings the feeling of browsing a premium hotel marketplace:
+              bold visuals, clear hotel details, room cards, booking steps,
+              reservation tracking, and an admin dashboard that keeps the system
+              organized.
+            </p>
+
+            <div className="home-experience-list">
+              <div>✓ Real hotel discovery and filtering</div>
+              <div>✓ Room-based booking flow</div>
+              <div>✓ Reservation history and admin control</div>
+              <div>✓ Premium visual identity</div>
             </div>
           </div>
 
-          <div className="team-grid" id="team-grid">
-            {TEAM.map((m) => teamCardHTML(m))}
+          <div className="home-experience-visual">
+            <div className="home-visual-card home-visual-card-main">
+              <span>Luxury preview</span>
+              <strong>{heroHotel?.name || "AlQasr Collection"}</strong>
+              <p>{heroHotel?.description || "Find comfort, trust, and elegant stays in one place."}</p>
+            </div>
+            <div className="home-visual-card home-visual-card-float">
+              <strong>Instant booking</strong>
+              <span>Rooms • Guests • Payment • Confirmation</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-team-section" id="about">
+        <div className="container">
+          <div className="home-section-header home-team-header">
+            <span>Behind the platform</span>
+            <h2>The team shaping the AlQasr experience.</h2>
+            <p>
+              Three focused builders bringing together backend logic, frontend
+              experience, and polished product design.
+            </p>
           </div>
 
-          <div className="social-links">
+          <div className="home-team-grid" id="team-grid">
+            {TEAM.map((m, index) => teamCardHTML(m, index))}
+          </div>
+
+          <div className="social-links home-social-links">
             <a
               className="social-btn instagram"
               href="https://www.instagram.com/sa3ed.mo.awad/"
@@ -528,7 +548,7 @@ export function Home() {
         </div>
       </section>
 
-      <footer>
+      <footer className="home-footer">
         <div className="container">
           <div className="footer-grid">
             <div>
