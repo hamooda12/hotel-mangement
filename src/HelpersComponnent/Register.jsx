@@ -16,10 +16,7 @@ export function Register({
       <div className="auth-copy">
         <span className="auth-eyebrow">Join Al-Qasr</span>
         <h2>Create your account</h2>
-        <p>
-          Become part of a refined booking experience designed for elegant stays,
-          smooth reservations, and memorable hotel moments.
-        </p>
+      
       </div>
 
       <div className="auth-name-grid">
