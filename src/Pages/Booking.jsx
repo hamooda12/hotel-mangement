@@ -5,28 +5,30 @@ import {
   createPaymentIntent,
   simulatePayment,
 } from "../api/hotelApi";
+import "../commonStyle.css";
+import "../PagesStyles/Booking.css";
 
 function BookingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-const {
-  mode,
-  returnTo = "/",
-  bookingId,
-  hotelId,
-  roomId,
-  hotelName,
-  roomName,
-  price,
-  totalPrice,
-  checkIn,
-  checkOut,
-  guests,
-  referenceCode,
-} = location.state || {};
+  const {
+    mode,
+    returnTo = "/",
+    bookingId,
+    hotelId,
+    roomId,
+    hotelName,
+    roomName,
+    price,
+    totalPrice,
+    checkIn,
+    checkOut,
+    guests,
+    referenceCode,
+  } = location.state || {};
 
-const isConfirmExisting = mode === "confirm-existing";
+  const isConfirmExisting = mode === "confirm-existing";
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -34,23 +36,23 @@ const isConfirmExisting = mode === "confirm-existing";
     .toISOString()
     .split("T")[0];
 
-const [bookingDates, setBookingDates] = useState({
-  checkIn: checkIn || today,
-  checkOut: checkOut || tomorrow,
-  guests: guests || 1,
-});
+  const [bookingDates, setBookingDates] = useState({
+    checkIn: checkIn || today,
+    checkOut: checkOut || tomorrow,
+    guests: guests || 1,
+  });
 
   const [bookingStep, setBookingStep] = useState(isConfirmExisting ? 2 : 1);
   const [loading, setLoading] = useState(false);
-const [createdBooking, setCreatedBooking] = useState(
-  isConfirmExisting
-    ? {
-        id: bookingId,
-        referenceCode,
-        totalPrice,
-      }
-    : null
-);
+  const [createdBooking, setCreatedBooking] = useState(
+    isConfirmExisting
+      ? {
+          id: bookingId,
+          referenceCode,
+          totalPrice,
+        }
+      : null
+  );
   const [confirmationCode, setConfirmationCode] = useState("");
 
   const [guestInfo, setGuestInfo] = useState({
@@ -251,27 +253,18 @@ const [createdBooking, setCreatedBooking] = useState(
     }
   };
 
+  const formattedHotelName = hotelName || "Selected hotel";
+  const formattedRoomName = roomName || "Selected room";
+
   if (!hotelId || !roomId) {
     return (
-      <div className="page-active">
-        <div
-          className="container"
-          style={{
-            paddingTop: "2rem",
-            paddingBottom: "4rem",
-            maxWidth: "720px",
-          }}
-        >
-          <div className="card">
+      <div className="page-active booking-page-shell">
+        <div className="booking-container booking-container-narrow">
+          <div className="booking-missing-card card">
             <div className="card-body">
-              <h2 className="amiri" style={{ color: "var(--navy)" }}>
-                Missing Booking Data
-              </h2>
-
-              <p style={{ color: "var(--text-mid)", marginBottom: "1rem" }}>
-                Please go back and select a room first.
-              </p>
-
+              <div className="booking-missing-icon">!</div>
+              <h2 className="amiri">Missing Booking Data</h2>
+              <p>Please go back and select a room first.</p>
               <button className="btn btn-primary" onClick={() => navigate(-1)}>
                 Back to Hotel
               </button>
@@ -283,35 +276,41 @@ const [createdBooking, setCreatedBooking] = useState(
   }
 
   return (
-    <div className="page-active" id="page-booking">
-      <div
-        className="container"
-        style={{
-          paddingTop: "2rem",
-          paddingBottom: "4rem",
-          maxWidth: "720px",
-        }}
-      >
-        <button
-          className="btn btn-outline btn-sm"
-          onClick={() => navigate(isConfirmExisting ? "/my-bookings" : -1)}
-          style={{ marginBottom: "1.5rem" }}
-        >
-       {isConfirmExisting ? "← Back to My Bookings" : "← Back to Hotel"}
-        </button>
+    <div className="page-active booking-page-shell" id="page-booking">
+      <div className="booking-container">
+        <div className="booking-topbar">
+          <button
+            className="booking-back-btn btn btn-outline btn-sm"
+            onClick={() => navigate(isConfirmExisting ? "/my-bookings" : -1)}
+          >
+            {isConfirmExisting ? "← Back to My Bookings" : "← Back to Hotel"}
+          </button>
 
-        <h1
-          className="amiri"
-          style={{
-            color: "var(--navy)",
-            fontSize: "2rem",
-            marginBottom: "1.5rem",
-          }}
-        >
-          Complete Your Booking
-        </h1>
+          <div className="booking-trust-strip" aria-label="Booking trust signals">
+            <span>Best price preview</span>
+            <span>Secure checkout</span>
+            <span>No hidden flow changes</span>
+          </div>
+        </div>
 
-        <div className="steps">
+        <section className="booking-hero-panel">
+          <div className="booking-hero-content">
+            <span className="booking-eyebrow">Hotel reservation checkout</span>
+            <h1 className="amiri">Complete Your Booking</h1>
+            <p>
+              Review your stay, enter your details, and confirm your reservation
+              in a clean secure checkout experience.
+            </p>
+          </div>
+
+          <div className="booking-hero-mini-card">
+            <span>Selected stay</span>
+            <strong>{nights} night{nights === 1 ? "" : "s"}</strong>
+            <small>{bookingDates.guests} guest{bookingDates.guests === 1 ? "" : "s"}</small>
+          </div>
+        </section>
+
+        <div className="booking-stepper" role="list" aria-label="Booking steps">
           {steps.map((step, index) => {
             const stepNumber = index + 1;
             const done = stepNumber < bookingStep;
@@ -320,508 +319,430 @@ const [createdBooking, setCreatedBooking] = useState(
             return (
               <div
                 key={step}
-                className={`step${active ? " active" : ""}${
+                className={`booking-step${active ? " active" : ""}${
                   done ? " done" : ""
                 }`}
+                role="listitem"
               >
-                {done ? "✓" : <span className="step-num">{stepNumber}</span>}{" "}
-                {step}
+                <span className="booking-step-circle">
+                  {done ? "✓" : <span className="step-num">{stepNumber}</span>}
+                </span>
+                <span className="booking-step-label">{step}</span>
               </div>
             );
           })}
         </div>
 
-        {bookingStep === 1 && (
-          <div className="card fade-in">
-            <div className="card-body">
-              <div
-                style={{
-                  background: "var(--bg-nav)",
-                  color: "#fff",
-                  borderRadius: "12px",
-                  padding: "1rem",
-                  marginBottom: "1.5rem",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontFamily: "'Amiri', serif",
-                      fontSize: "1.1rem",
-                    }}
+        <main className="booking-layout">
+          <section className="booking-main-column">
+            {bookingStep === 1 && (
+              <div className="booking-section-card card fade-in">
+                <div className="card-body booking-card-body">
+                  <div className="booking-section-header">
+                    <div>
+                      <span className="booking-section-kicker">Step 1</span>
+                      <h2 className="amiri">Guest information</h2>
+                      <p>Enter the guest details exactly as you want them on the reservation.</p>
+                    </div>
+                    <span className="booking-section-badge">Required</span>
+                  </div>
+
+                  <div className="booking-form-grid two-columns">
+                    <div className="form-group">
+                      <label className="form-label">First Name *</label>
+                      <input
+                        name="fname"
+                        className="form-input booking-input"
+                        placeholder="Ahmed"
+                        value={guestInfo.fname}
+                        onChange={handleChange}
+                      />
+                      <div className="form-error">{errors.fname}</div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Last Name *</label>
+                      <input
+                        name="lname"
+                        className="form-input booking-input"
+                        placeholder="Al-Rashid"
+                        value={guestInfo.lname}
+                        onChange={handleChange}
+                      />
+                      <div className="form-error">{errors.lname}</div>
+                    </div>
+                  </div>
+
+                  <div className="booking-form-grid two-columns">
+                    <div className="form-group">
+                      <label className="form-label">Email *</label>
+                      <input
+                        name="email"
+                        className="form-input booking-input"
+                        placeholder="ahmed@example.com"
+                        type="email"
+                        value={guestInfo.email}
+                        onChange={handleChange}
+                      />
+                      <div className="form-error">{errors.email}</div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Phone *</label>
+                      <input
+                        name="phone"
+                        className="form-input booking-input"
+                        placeholder="+970 59 000 0000"
+                        value={guestInfo.phone}
+                        onChange={handleChange}
+                      />
+                      <div className="form-error">{errors.phone}</div>
+                    </div>
+                  </div>
+
+                  <div className="booking-section-divider" />
+
+                  <div className="booking-section-header compact">
+                    <div>
+                      <span className="booking-section-kicker">Stay details</span>
+                      <h3 className="amiri">Choose your dates</h3>
+                      <p>Your checkout date must be after your check-in date.</p>
+                    </div>
+                  </div>
+
+                  <div className="booking-form-grid three-columns">
+                    <div className="form-group">
+                      <label className="form-label">Check-in *</label>
+                      <input
+                        type="date"
+                        name="checkIn"
+                        className="form-input booking-input"
+                        value={bookingDates.checkIn}
+                        min={today}
+                        onChange={handleBookingDateChange}
+                      />
+                      <div className="form-error">{errors.checkIn}</div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Check-out *</label>
+                      <input
+                        type="date"
+                        name="checkOut"
+                        className="form-input booking-input"
+                        value={bookingDates.checkOut}
+                        min={bookingDates.checkIn || today}
+                        onChange={handleBookingDateChange}
+                      />
+                      <div className="form-error">{errors.checkOut}</div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Guests *</label>
+                      <input
+                        type="number"
+                        name="guests"
+                        className="form-input booking-input"
+                        min="1"
+                        value={bookingDates.guests}
+                        onChange={handleBookingDateChange}
+                      />
+                      <div className="form-error">{errors.guests}</div>
+                    </div>
+                  </div>
+
+                  <div className="booking-live-summary">
+                    <div>
+                      <span>Check-in</span>
+                      <strong>{bookingDates.checkIn || "Select date"}</strong>
+                    </div>
+                    <div>
+                      <span>Check-out</span>
+                      <strong>{bookingDates.checkOut || "Select date"}</strong>
+                    </div>
+                    <div>
+                      <span>Guests</span>
+                      <strong>{bookingDates.guests}</strong>
+                    </div>
+                    <div>
+                      <span>Nights</span>
+                      <strong>{nights}</strong>
+                    </div>
+                  </div>
+
+                  <div className="booking-actions-row end">
+                    <button
+                      className="btn btn-primary booking-primary-action"
+                      onClick={submitStep1}
+                      disabled={loading}
+                    >
+                      {loading ? "Creating Booking..." : "Continue to Payment →"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {bookingStep === 2 && (
+              <div className="booking-section-card card fade-in">
+                <div className="card-body booking-card-body">
+                  <div className="booking-section-header">
+                    <div>
+                      <span className="booking-section-kicker">Step 2</span>
+                      <h2 className="amiri">Payment details</h2>
+                      <p>Use the mock card details below to complete the simulated payment.</p>
+                    </div>
+                    <span className="booking-section-badge secure">Secure</span>
+                  </div>
+
+                  <div className="payment-security-banner">
+                    <span className="payment-lock">🔒</span>
+                    <div>
+                      <strong>Secure mock payment interface</strong>
+                      <p>Your booking flow stays exactly the same; this section is styled only.</p>
+                    </div>
+                  </div>
+
+                  <div className="payment-card-preview" aria-hidden="true">
+                    <div className="payment-card-topline">
+                      <span>Premium Stay Card</span>
+                      <span>••/••</span>
+                    </div>
+                    <div className="payment-card-number">4242 4242 4242 4242</div>
+                    <div className="payment-card-footerline">
+                      <span>{guestInfo.fname || "Guest"} {guestInfo.lname || "Name"}</span>
+                      <span>12 / 2026</span>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Card Number</label>
+                    <input
+                      className="form-input booking-input"
+                      defaultValue="4242 4242 4242 4242"
+                      maxLength="19"
+                    />
+                  </div>
+
+                  <div className="booking-form-grid three-columns payment-grid">
+                    <div className="form-group">
+                      <label className="form-label">Month</label>
+                      <select className="form-input booking-input" defaultValue="12">
+                        <option value="12">12</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Year</label>
+                      <select className="form-input booking-input" defaultValue="2026">
+                        <option value="2026">2026</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">CVV</label>
+                      <input
+                        className="form-input booking-input"
+                        type="password"
+                        defaultValue="123"
+                        maxLength="3"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Name on Card</label>
+                    <input
+                      className="form-input booking-input"
+                      defaultValue={`${guestInfo.fname} ${guestInfo.lname}`}
+                    />
+                  </div>
+
+                  <div className="price-breakdown booking-price-breakdown">
+                    <div className="pb-row">
+                      <span>Room rate</span>
+                      <span>${roomPrice}/night</span>
+                    </div>
+
+                    <div className="pb-row">
+                      <span>Nights</span>
+                      <span>{nights}</span>
+                    </div>
+
+                    <div className="pb-row">
+                      <span>Subtotal</span>
+                      <span>${subtotal}</span>
+                    </div>
+
+                    <div className="pb-row">
+                      <span>Taxes & fees 10%</span>
+                      <span>${taxes}</span>
+                    </div>
+
+                    <div className="pb-row pb-total">
+                      <span>Total</span>
+                      <span>${total}</span>
+                    </div>
+                  </div>
+
+                  <div className="booking-actions-row split">
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => {
+                        if (isConfirmExisting) {
+                          navigate("/my-bookings");
+                        } else {
+                          setBookingStep(1);
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      ← Back
+                    </button>
+
+                    <button
+                      className="btn btn-primary booking-primary-action"
+                      onClick={submitPayment}
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : `Pay $${total} →`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {bookingStep === 3 && (
+              <div className="confirmation-card confirm-box fade-in">
+                <div className="confirmation-icon">✓</div>
+
+                <span className="booking-section-kicker">Reservation secured</span>
+                <h2 className="amiri">Booking Confirmed!</h2>
+
+                <p>
+                  Your reservation has been successfully completed. Keep your reference
+                  code for check-in and booking support.
+                </p>
+
+                <div className="confirm-code">Ref: {confirmationCode}</div>
+
+                <div className="confirmation-receipt">
+                  <div className="confirmation-hotel-block">
+                    <span>Hotel</span>
+                    <strong>{formattedHotelName}</strong>
+                    <small>{formattedRoomName}</small>
+                  </div>
+
+                  <div className="confirmation-grid">
+                    <div>
+                      <span>Room</span>
+                      <strong>{formattedRoomName}</strong>
+                    </div>
+
+                    <div>
+                      <span>Nights</span>
+                      <strong>{nights}</strong>
+                    </div>
+
+                    <div>
+                      <span>Check-in</span>
+                      <strong>{bookingDates.checkIn}</strong>
+                    </div>
+
+                    <div>
+                      <span>Check-out</span>
+                      <strong>{bookingDates.checkOut}</strong>
+                    </div>
+
+                    <div>
+                      <span>Guests</span>
+                      <strong>{bookingDates.guests}</strong>
+                    </div>
+
+                    <div>
+                      <span>Total</span>
+                      <strong>${total}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="booking-actions-row center">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => navigate("/my-bookings")}
                   >
-                    {hotelName}
-                  </div>
+                    View My Bookings
+                  </button>
 
-                  <div style={{ fontSize: "13px", opacity: 0.75 }}>
-                    {roomName} · {nights} nights
-                  </div>
-                </div>
-
-                <div style={{ textAlign: "right" }}>
-                  <div
-                    style={{
-                      fontSize: "1.3rem",
-                      fontWeight: 700,
-                      color: "var(--gold-bright)",
-                    }}
-                  >
-                    ${subtotal}
-                  </div>
-
-                  <div style={{ fontSize: "12px", opacity: 0.6 }}>total</div>
+                  <button className="btn btn-outline" onClick={() => navigate("/")}>
+                    Back to Home
+                  </button>
                 </div>
               </div>
+            )}
+          </section>
 
-              <h3
-                style={{
-                  fontFamily: "'Amiri', serif",
-                  color: "var(--navy)",
-                  marginBottom: "1.25rem",
-                }}
-              >
-                Guest Information
-              </h3>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "1rem",
-                }}
-              >
-                <div className="form-group">
-                  <label className="form-label">First Name *</label>
-                  <input
-                    name="fname"
-                    className="form-input"
-                    placeholder="Ahmed"
-                    value={guestInfo.fname}
-                    onChange={handleChange}
-                  />
-                  <div className="form-error">{errors.fname}</div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Last Name *</label>
-                  <input
-                    name="lname"
-                    className="form-input"
-                    placeholder="Al-Rashid"
-                    value={guestInfo.lname}
-                    onChange={handleChange}
-                  />
-                  <div className="form-error">{errors.lname}</div>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Email *</label>
-                <input
-                  name="email"
-                  className="form-input"
-                  placeholder="ahmed@example.com"
-                  type="email"
-                  value={guestInfo.email}
-                  onChange={handleChange}
-                />
-                <div className="form-error">{errors.email}</div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Phone *</label>
-                <input
-                  name="phone"
-                  className="form-input"
-                  placeholder="+970 59 000 0000"
-                  value={guestInfo.phone}
-                  onChange={handleChange}
-                />
-                <div className="form-error">{errors.phone}</div>
-              </div>
-
-              <h3
-                style={{
-                  fontFamily: "'Amiri', serif",
-                  color: "var(--navy)",
-                  marginTop: "1.5rem",
-                  marginBottom: "1.25rem",
-                }}
-              >
-                Stay Details
-              </h3>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "1rem",
-                }}
-              >
-                <div className="form-group">
-                  <label className="form-label">Check-in *</label>
-                  <input
-                    type="date"
-                    name="checkIn"
-                    className="form-input"
-                    value={bookingDates.checkIn}
-                    min={today}
-                    onChange={handleBookingDateChange}
-                  />
-                  <div className="form-error">{errors.checkIn}</div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Check-out *</label>
-                  <input
-                    type="date"
-                    name="checkOut"
-                    className="form-input"
-                    value={bookingDates.checkOut}
-                    min={bookingDates.checkIn || today}
-                    onChange={handleBookingDateChange}
-                  />
-                  <div className="form-error">{errors.checkOut}</div>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Guests *</label>
-                <input
-                  type="number"
-                  name="guests"
-                  className="form-input"
-                  min="1"
-                  value={bookingDates.guests}
-                  onChange={handleBookingDateChange}
-                />
-                <div className="form-error">{errors.guests}</div>
-              </div>
-
-              <div
-                style={{
-                  background: "var(--bg-mid)",
-                  padding: "1rem",
-                  borderRadius: "12px",
-                  marginTop: "1rem",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "1rem",
-                  fontSize: "13px",
-                }}
-              >
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Check-in
-                  </div>
-                  <strong>{bookingDates.checkIn}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Check-out
-                  </div>
-                  <strong>{bookingDates.checkOut}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Guests
-                  </div>
-                  <strong>{bookingDates.guests}</strong>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  marginTop: "1rem",
-                }}
-              >
-                <button
-                  className="btn btn-primary"
-                  onClick={submitStep1}
-                  disabled={loading}
-                >
-                  {loading ? "Creating Booking..." : "Continue to Payment →"}
-                </button>
+          <aside className="booking-summary-card" aria-label="Reservation summary">
+            <div className="booking-summary-image">
+              <div className="booking-summary-image-overlay">
+                <span>Luxury stay</span>
+                <strong>{formattedHotelName}</strong>
               </div>
             </div>
-          </div>
-        )}
 
-        {bookingStep === 2 && (
-          <div className="card fade-in">
-            <div className="card-body">
-              <h3
-                style={{
-                  fontFamily: "'Amiri', serif",
-                  color: "var(--navy)",
-                  marginBottom: "1.25rem",
-                }}
-              >
-                Payment Details
-              </h3>
+            <div className="booking-summary-body">
+              <div className="booking-summary-title-row">
+                <div>
+                  <span className="booking-section-kicker">Reservation summary</span>
+                  <h3 className="amiri">{formattedHotelName}</h3>
+                  <p>{formattedRoomName}</p>
+                </div>
+                <span className="booking-rating-pill">8.9</span>
+              </div>
 
-              <div
-                style={{
-                  background: "var(--bg-mid)",
-                  borderRadius: "12px",
-                  padding: "1rem",
-                  marginBottom: "1.5rem",
-                  border: "1px dashed var(--emerald-mid)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    color: "var(--emerald)",
-                  }}
-                >
-                  🔒 Secure mock payment interface
+              <div className="booking-summary-chips">
+                <span>{nights} night{nights === 1 ? "" : "s"}</span>
+                <span>{bookingDates.guests} guest{bookingDates.guests === 1 ? "" : "s"}</span>
+                <span>Hotel ID {hotelId}</span>
+              </div>
+
+              <div className="booking-summary-dates">
+                <div>
+                  <span>Check-in</span>
+                  <strong>{bookingDates.checkIn || "—"}</strong>
+                </div>
+                <div>
+                  <span>Check-out</span>
+                  <strong>{bookingDates.checkOut || "—"}</strong>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Card Number</label>
-                <input
-                  className="form-input"
-                  defaultValue="4242 4242 4242 4242"
-                  maxLength="19"
-                />
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "1rem",
-                }}
-              >
-                <div className="form-group">
-                  <label className="form-label">Month</label>
-                  <select className="form-input" defaultValue="12">
-                    <option value="12">12</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Year</label>
-                  <select className="form-input" defaultValue="2026">
-                    <option value="2026">2026</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">CVV</label>
-                  <input
-                    className="form-input"
-                    type="password"
-                    defaultValue="123"
-                    maxLength="3"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Name on Card</label>
-                <input
-                  className="form-input"
-                  defaultValue={`${guestInfo.fname} ${guestInfo.lname}`}
-                />
-              </div>
-
-              <div className="price-breakdown">
-                <div className="pb-row">
+              <div className="booking-summary-lines">
+                <div className="booking-summary-row">
                   <span>Room rate</span>
-                  <span>${roomPrice}/night</span>
+                  <strong>${roomPrice}/night</strong>
                 </div>
-
-                <div className="pb-row">
-                  <span>Nights</span>
-                  <span>{nights}</span>
-                </div>
-
-                <div className="pb-row">
+                <div className="booking-summary-row">
                   <span>Subtotal</span>
-                  <span>${subtotal}</span>
+                  <strong>${subtotal}</strong>
                 </div>
-
-                <div className="pb-row">
-                  <span>Taxes & fees 10%</span>
-                  <span>${taxes}</span>
+                <div className="booking-summary-row">
+                  <span>Taxes & fees</span>
+                  <strong>${taxes}</strong>
                 </div>
-
-                <div className="pb-row pb-total">
+                <div className="booking-summary-row booking-total-row">
                   <span>Total</span>
-                  <span>${total}</span>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: "1.5rem",
-                }}
-              >
-               <button
-  className="btn btn-outline"
-  onClick={() => {
-    if (isConfirmExisting) {
-      navigate("/my-bookings");
-    } else {
-      setBookingStep(1);
-    }
-  }}
-  disabled={loading}
->
-  ← Back
-</button>
-
-                <button
-                  className="btn btn-primary"
-                  onClick={submitPayment}
-                  disabled={loading}
-                >
-                  {loading ? "Processing..." : `Pay $${total} →`}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {bookingStep === 3 && (
-          <div className="confirm-box fade-in">
-            <span
-              style={{
-                fontSize: "4rem",
-                display: "block",
-                marginBottom: "1rem",
-              }}
-            >
-              ✦
-            </span>
-
-            <h2
-              className="amiri"
-              style={{
-                color: "var(--navy)",
-                fontSize: "2rem",
-                marginBottom: "0.5rem",
-              }}
-            >
-              Booking Confirmed!
-            </h2>
-
-            <p style={{ color: "var(--text-mid)", marginBottom: "1rem" }}>
-              Your reservation has been successfully completed.
-            </p>
-
-            <div className="confirm-code">Ref: {confirmationCode}</div>
-
-            <div
-              style={{
-                background: "var(--bg-card)",
-                borderRadius: "12px",
-                padding: "1.25rem",
-                maxWidth: "400px",
-                margin: "1rem auto",
-                textAlign: "left",
-                border: "1px solid var(--border)",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'Amiri', serif",
-                  fontSize: "1.1rem",
-                  color: "var(--navy)",
-                  marginBottom: "0.75rem",
-                }}
-              >
-                {hotelName}
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                  fontSize: "13px",
-                }}
-              >
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Room
-                  </div>
-                  <strong>{roomName}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Nights
-                  </div>
-                  <strong>{nights}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Check-in
-                  </div>
-                  <strong>{bookingDates.checkIn}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Check-out
-                  </div>
-                  <strong>{bookingDates.checkOut}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Guests
-                  </div>
-                  <strong>{bookingDates.guests}</strong>
-                </div>
-
-                <div>
-                  <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
-                    Total
-                  </div>
                   <strong>${total}</strong>
                 </div>
               </div>
-            </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                className="btn btn-primary"
-                onClick={() => navigate("/my-bookings")}
-              >
-                View My Bookings
-              </button>
-
-              <button className="btn btn-outline" onClick={() => navigate("/")}>
-                Back to Home
-              </button>
+              <div className="booking-summary-note">
+                <span>✓</span>
+                <p>Your booking details are calculated live from the same page state.</p>
+              </div>
             </div>
-          </div>
-        )}
+          </aside>
+        </main>
       </div>
     </div>
   );

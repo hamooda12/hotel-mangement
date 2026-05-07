@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-;
 import { useNavigate } from "react-router-dom";
 import {
   getGuestBookingHistory,
@@ -9,22 +8,20 @@ import {
 import "../PagesStyles/MyBookings.css";
 import "../commonStyle.css";
 
-
 export function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState(null);
   const [error, setError] = useState("");
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const isLoggedIn = useMemo(() => {
-    console.log(localStorage.getItem("accessToken"))
+    console.log(localStorage.getItem("accessToken"));
     return Boolean(localStorage.getItem("accessToken"));
   }, []);
 
   useEffect(() => {
- 
-
     loadBookings();
   }, [isLoggedIn]);
 
@@ -33,18 +30,17 @@ const navigate = useNavigate();
       setLoading(true);
       setError("");
 
-    const token = localStorage.getItem("accessToken");
-const payload = JSON.parse(atob(token.split(".")[1]));
+      const token = localStorage.getItem("accessToken");
+      const payload = JSON.parse(atob(token.split(".")[1]));
 
-let data;
+      let data;
 
-if (payload.role === "ADMIN" || payload.role === "MANAGER") {
-  data = await getAllBookings();
-} else {
-  data = await getGuestBookingHistory();
-}
+      if (payload.role === "ADMIN" || payload.role === "MANAGER") {
+        data = await getAllBookings();
+      } else {
+        data = await getGuestBookingHistory();
+      }
 
-setBookings(Array.isArray(data) ? data : []);
       setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
@@ -55,7 +51,7 @@ setBookings(Array.isArray(data) ? data : []);
   }
 
   async function handleCancelBooking(bookingId) {
-     console.log("Cancel booking id:", bookingId);
+    console.log("Cancel booking id:", bookingId);
     const confirmed = window.confirm("Are you sure you want to cancel this booking?");
     if (!confirmed) return;
 
@@ -74,20 +70,18 @@ setBookings(Array.isArray(data) ? data : []);
         setSelectedBooking(updatedBooking);
       }
     } catch (err) {
-  console.error("CANCEL ERROR:", err);
-  console.error("STATUS:", err?.response?.status);
-  console.error("BACKEND DATA:", err?.response?.data);
+      console.error("CANCEL ERROR:", err);
+      console.error("STATUS:", err?.response?.status);
+      console.error("BACKEND DATA:", err?.response?.data);
 
-  const backendMessage =
-    err?.response?.data?.message ||
-    err?.response?.data?.error ||
-    err?.response?.data ||
-    "Could not cancel this booking.";
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.response?.data ||
+        "Could not cancel this booking.";
 
-  alert(backendMessage);
-
-    }
-    finally {
+      alert(backendMessage);
+    } finally {
       setCancelingId(null);
     }
   }
@@ -141,26 +135,31 @@ setBookings(Array.isArray(data) ? data : []);
     return (
       <section className="my-bookings-page">
         <div className="my-bookings-container">
-          <PageHeader />
+          <PageHeader bookings={bookings} />
           <div className="bookings-loading-card">
             <div className="booking-spinner"></div>
-            <p>Loading your bookings...</p>
+            <div>
+              <strong>Preparing your reservations</strong>
+              <p>Loading your bookings...</p>
+            </div>
           </div>
         </div>
       </section>
     );
   }
 
-
   return (
     <section className="my-bookings-page">
       <div className="my-bookings-container">
-        <PageHeader />
+        <PageHeader bookings={bookings} />
 
         {error && (
           <div className="bookings-error">
-            <span>⚠️</span>
-            <p>{error}</p>
+            <div className="bookings-error-icon">⚠️</div>
+            <div className="bookings-error-content">
+              <strong>Something went wrong</strong>
+              <p>{error}</p>
+            </div>
             <button className="btn btn-outline btn-sm" onClick={loadBookings}>
               Try Again
             </button>
@@ -168,14 +167,14 @@ setBookings(Array.isArray(data) ? data : []);
         )}
 
         {!error && bookings.length === 0 && (
-          <div className="empty-state">
+          <div className="empty-state bookings-empty-state">
             <div className="empty-icon">📋</div>
             <h2>No bookings found</h2>
             <p>You have not made any hotel reservations yet.</p>
             <button
               className="btn btn-primary"
               onClick={() => {
-                navigate('../search')
+                navigate("../search");
               }}
             >
               Browse Hotels
@@ -188,94 +187,100 @@ setBookings(Array.isArray(data) ? data : []);
             {bookings.map((booking) => {
               const nights = calcNights(booking.checkIn, booking.checkOut);
 
-              return(<div className="booking-card" key={booking.id}>
-  <div className="booking-hotel-image-wrap">
-    <img
-      className="booking-hotel-image"
-      src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
-      alt={booking.hotelName || "Hotel"}
-      onError={(e) => {
-        e.currentTarget.src = "/hotel-placeholder.jpg";
-      }}
-    />
-  </div>
+              return (
+                <div className="booking-card" key={booking.id}>
+                  <div className="booking-hotel-image-wrap">
+                    <img
+                      className="booking-hotel-image"
+                      src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
+                      alt={booking.hotelName || "Hotel"}
+                      onError={(e) => {
+                        e.currentTarget.src = "/hotel-placeholder.jpg";
+                      }}
+                    />
+                  </div>
 
-  <div className="booking-main-info">
-    <h2>{booking.hotelName}</h2>
+                  <div className="booking-main-info">
+                    <div className="booking-card-topline">
+                      <span className={`badge ${getStatusClass(booking.status)}`}>
+                        {booking.status}
+                      </span>
+                      <span className="booking-reference">Reservation #{booking.id}</span>
+                    </div>
 
-    <p className="booking-subtitle">
-      📍 Hotel ID: {booking.hotelId} · {booking.roomTypeName}
-    </p>
+                    <h2>{booking.hotelName}</h2>
 
-    <div className="booking-meta">
-      <span>📅 {formatDate(booking.checkIn)}</span>
-      <span>→</span>
-      <span>{formatDate(booking.checkOut)}</span>
-      <span>🌙 {nights} nights</span>
-      <span>👥 {booking.guests} guests</span>
-    </div>
-  </div>
+                    <p className="booking-subtitle">
+                      <span>Room: {booking.roomTypeName || "N/A"}</span>
+                      <span>Hotel ID: {booking.hotelId}</span>
+                    </p>
 
-  <div className="booking-actions-box">
-    <div className="booking-price">{formatMoney(booking.totalPrice)}</div>
+                    <div className="booking-meta">
+                      <span className="booking-info-chip">📅 {formatDate(booking.checkIn)}</span>
+                      <span className="booking-info-chip">↗ {formatDate(booking.checkOut)}</span>
+                      <span className="booking-info-chip">🌙 {nights} nights</span>
+                      <span className="booking-info-chip">👥 {booking.guests} guests</span>
+                    </div>
+                  </div>
 
-    <span className={`badge ${getStatusClass(booking.status)}`}>
-      {booking.status}
-    </span>
+                  <div className="booking-actions-box">
+                    <span className="booking-price-label">Total Price</span>
+                    <div className="booking-price">{formatMoney(booking.totalPrice)}</div>
 
-    <div className="booking-buttons">
-      <button
-        className="btn btn-outline btn-sm"
-        onClick={() => setSelectedBooking(booking)}
-      >
-        Details
-      </button>
-{booking.status === "PENDING" && (
-  <button
-    className="btn btn-primary btn-sm"
-    onClick={() =>
-      navigate("/booking", {
-        state: {
-          mode: "confirm-existing",
-          returnTo: "/my-bookingsس",
+                    <div className="booking-buttons">
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => setSelectedBooking(booking)}
+                      >
+                        Details
+                      </button>
 
-          bookingId: booking.id,
-          hotelId: booking.hotelId,
-          roomId: booking.roomTypeId,
+                      {booking.status === "PENDING" && (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() =>
+                            navigate("/booking", {
+                              state: {
+                                mode: "confirm-existing",
+                                returnTo: "/my-bookingsس",
 
-          hotelName: booking.hotelName,
-          roomName: booking.roomTypeName,
+                                bookingId: booking.id,
+                                hotelId: booking.hotelId,
+                                roomId: booking.roomTypeId,
 
-          price: booking.totalPrice,
-          totalPrice: booking.totalPrice,
+                                hotelName: booking.hotelName,
+                                roomName: booking.roomTypeName,
 
-          checkIn: booking.checkIn,
-          checkOut: booking.checkOut,
-          guests: booking.guests,
+                                price: booking.totalPrice,
+                                totalPrice: booking.totalPrice,
 
-          referenceCode: booking.referenceCode,
-        },
-      })
-    }
-  >
-    Confirm
-  </button>
-)}
-      {canCancelBooking(booking.status) && (
-        <button
-          className="btn btn-danger btn-sm"
-          disabled={cancelingId === booking.id}
-          onClick={() => handleCancelBooking(booking.id)}
-        >
-          {cancelingId === booking.id ? "Canceling..." : "Cancel"}
-        </button>
-      )}
-    </div>
-  </div>
-</div>)
-           
-           
-           })}
+                                checkIn: booking.checkIn,
+                                checkOut: booking.checkOut,
+                                guests: booking.guests,
+
+                                referenceCode: booking.referenceCode,
+                              },
+                            })
+                          }
+                        >
+                          Confirm
+                        </button>
+                      )}
+
+                      {canCancelBooking(booking.status) && (
+                        <button
+                          className="btn btn-danger btn-sm"
+                          disabled={cancelingId === booking.id}
+                          onClick={() => handleCancelBooking(booking.id)}
+                        >
+                          {cancelingId === booking.id ? "Canceling..." : "Cancel"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -297,11 +302,36 @@ setBookings(Array.isArray(data) ? data : []);
   );
 }
 
-function PageHeader() {
+function PageHeader({ bookings = [] }) {
+  const totalBookings = bookings.length;
+  const pendingBookings = bookings.filter(
+    (booking) => String(booking.status || "").toLowerCase() === "pending"
+  ).length;
+  const activeBookings = bookings.filter((booking) => {
+    const status = String(booking.status || "").toLowerCase();
+    return status !== "cancelled" && status !== "canceled" && status !== "completed";
+  }).length;
+
   return (
     <div className="my-bookings-header">
+      <div className="my-bookings-eyebrow">Reservations dashboard</div>
       <h1>My Bookings</h1>
-      <p>Manage your reservations and review your hotel stays.</p>
+      <p>Manage your hotel reservations, review stay details, and track booking status.</p>
+
+      <div className="bookings-header-stats">
+        <div className="bookings-stat-card">
+          <span>Total Reservations</span>
+          <strong>{totalBookings}</strong>
+        </div>
+        <div className="bookings-stat-card">
+          <span>Active</span>
+          <strong>{activeBookings}</strong>
+        </div>
+        <div className="bookings-stat-card">
+          <span>Pending</span>
+          <strong>{pendingBookings}</strong>
+        </div>
+      </div>
     </div>
   );
 }
@@ -324,28 +354,36 @@ function BookingDetailsModal({
       <div className="booking-modal" onClick={(e) => e.stopPropagation()}>
         <div className="booking-modal-header">
           <div>
+            <span className="booking-modal-eyebrow">Reservation receipt</span>
             <h2>Booking Details</h2>
             <p>Reservation #{booking.id}</p>
           </div>
 
-          <button className="booking-modal-close" onClick={onClose}>
+          <button className="booking-modal-close" onClick={onClose} aria-label="Close booking details">
             ×
           </button>
         </div>
 
         <div className="booking-modal-body">
           <div className="booking-detail-hero">
-  
-    <div className="booking-detail-image-wrap">
-      <img
-        className="booking-detail-image-detail"
-        src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
-        alt={booking.hotelName || "Hotel"}
-        onError={(e) => {
-          e.currentTarget.src = "/hotel-placeholder.jpg";
-        }}
-      />
-    </div>
+            <div className="booking-detail-image-wrap">
+              <img
+                className="booking-detail-image-detail"
+                src={booking.hotelImageUrl || "/hotel-placeholder.jpg"}
+                alt={booking.hotelName || "Hotel"}
+                onError={(e) => {
+                  e.currentTarget.src = "/hotel-placeholder.jpg";
+                }}
+              />
+            </div>
+
+            <div className="booking-detail-hero-content">
+              <span className={`badge ${getStatusClass(booking.status)}`}>
+                {booking.status}
+              </span>
+              <h3>{booking.hotelName || "Hotel Reservation"}</h3>
+              <p>{booking.roomTypeName || "Room details unavailable"}</p>
+            </div>
           </div>
 
           <div className="booking-detail-grid">
