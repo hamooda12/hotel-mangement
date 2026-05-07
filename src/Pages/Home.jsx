@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { showToast } from "../FunctionsofTheProject/HelperFunctions.js";
 import { getHotels, getRoomTypes } from "../api/hotelApi.js";
-import HamoodaImg from "../assets/ProfilePhotos/Hamooda.png";
-import HamadImg from "../assets/ProfilePhotos/Hamad.png";
-import SaeedImg from "../assets/ProfilePhotos/Saeed.png";
+import HamoodaImg from "../assets/team/Hamooda.png";
+import HamadImg from "../assets/team/Hamad.png";
+import SaeedImg from "../assets/team/Saeed.png";
 import {
   FaInstagram,
   FaXTwitter,

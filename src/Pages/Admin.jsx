@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 import "../PagesStyles/admin.css";
 import "../commonStyle.css";
 
+import hamadPhoto from "../assets/team/Hamad.png";
+import hamoodaPhoto from "../assets/team/Hamooda.png";
+import saeedPhoto from "../assets/team/Saeed.png";
+
 import {
   getHotels,
   getRoomTypes,
@@ -14,6 +18,27 @@ import {
   deleteHotel,
   deleteRoomType,
 } from "../api/hotelApi";
+
+const TEAM_MEMBERS = [
+  {
+    name: "Hamad",
+    role: "Backend & Admin Systems",
+    image: hamadPhoto,
+    accent: "emerald",
+  },
+  {
+    name: "Hamooda",
+    role: "Full Stack & Booking Flow",
+    image: hamoodaPhoto,
+    accent: "gold",
+  },
+  {
+    name: "Saeed",
+    role: "Frontend Experience",
+    image: saeedPhoto,
+    accent: "navy",
+  },
+];
 
 export function Admin() {
   const navigate = useNavigate();
@@ -300,11 +325,18 @@ export function Admin() {
 
   if (loading) {
     return (
-      <div className="page-active" id="page-active-admin">
-        <div className="container" style={{ padding: "3rem 0" }}>
-          <h2 className="amiri" style={{ color: "var(--navy)" }}>
-            Loading admin dashboard...
-          </h2>
+      <div className="page-active admin-page" id="page-active-admin">
+        <div className="admin-loading-shell">
+          <div className="admin-loading-card">
+            <div className="admin-loading-orbit">
+              {TEAM_MEMBERS.map((member) => (
+                <img key={member.name} src={member.image} alt={member.name} />
+              ))}
+            </div>
+            <h2>Preparing admin dashboard</h2>
+            <p>Syncing hotels, rooms, bookings, and team controls...</p>
+            <div className="admin-loading-bar"><span /></div>
+          </div>
         </div>
       </div>
     );
@@ -312,22 +344,15 @@ export function Admin() {
 
   if (error) {
     return (
-      <div className="page-active" id="page-active-admin">
-        <div className="container" style={{ padding: "3rem 0" }}>
-          <div className="card">
-            <div className="card-body">
-              <h2 className="amiri" style={{ color: "var(--navy)" }}>
-                Admin Dashboard
-              </h2>
-
-              <p style={{ color: "var(--danger)", marginTop: "1rem" }}>
-                {error}
-              </p>
-
-              <button className="btn btn-primary" onClick={loadAdminData}>
-                Try Again
-              </button>
-            </div>
+      <div className="page-active admin-page" id="page-active-admin">
+        <div className="admin-error-shell">
+          <div className="admin-error-card">
+            <div className="admin-error-icon">!</div>
+            <h2>Admin Dashboard</h2>
+            <p>{error}</p>
+            <button className="btn btn-primary" onClick={loadAdminData}>
+              Try Again
+            </button>
           </div>
         </div>
       </div>
@@ -335,23 +360,39 @@ export function Admin() {
   }
 
   return (
-    <div className="page-active" id="page-active-admin">
-      <div className="dashboard-grid">
-        <aside className="sidebar">
-          <div className="sidebar-title">✦ Admin Panel</div>
+    <div className="page-active admin-page" id="page-active-admin">
+      <div className="dashboard-grid admin-dashboard-layout">
+        <aside className="sidebar admin-sidebar">
+          <div className="sidebar-brand-card">
+            <div className="sidebar-kicker">Watterson Hotel</div>
+            <div className="sidebar-title">Admin Studio</div>
+            <p>Live control center for reservations, rooms, hotels, and team operations.</p>
+          </div>
 
-          {adminTabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`sidebar-link ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <div className="sidebar-team-stack" aria-label="Project team">
+            {TEAM_MEMBERS.map((member) => (
+              <img key={member.name} src={member.image} alt={member.name} title={member.name} />
+            ))}
+            <div>
+              <strong>Team cockpit</strong>
+              <span>3 operators online</span>
+            </div>
+          </div>
+
+          <nav className="admin-nav">
+            {adminTabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`sidebar-link ${activeTab === tab.id ? "active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </aside>
 
-        <main id="admin-content" style={{ overflow: "hidden", minWidth: 0 }}>
+        <main id="admin-content" className="admin-content">
           {activeTab === "overview" && (
             <OverviewTab
               hotels={hotels}
@@ -364,6 +405,7 @@ export function Admin() {
               getStatusClass={getStatusClass}
               getHotelNameById={getHotelNameById}
               getRoomNameById={getRoomNameById}
+              teamMembers={TEAM_MEMBERS}
             />
           )}
 
@@ -439,53 +481,69 @@ function OverviewTab({
   getStatusClass,
   getHotelNameById,
   getRoomNameById,
+  teamMembers = [],
 }) {
   return (
-    <div className="fade-in">
-      <h2
-        className="amiri"
-        style={{
-          color: "var(--navy)",
-          fontSize: "1.8rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-        Dashboard Overview
-      </h2>
+    <div className="fade-in admin-overview">
+      <section className="admin-hero-panel">
+        <div className="admin-hero-copy">
+          <span className="admin-eyebrow">Live hotel operations</span>
+          <h1>Dashboard Overview</h1>
+          <p>Manage inventory, bookings, revenue, and guest experiences from one premium control room.</p>
+          <div className="admin-hero-chips">
+            <span>{hotels.length} hotels</span>
+            <span>{bookings.length} bookings</span>
+            <span>{occupancyRate}% occupancy</span>
+          </div>
+        </div>
+
+        <div className="team-portrait-collage">
+          {teamMembers.map((member, index) => (
+            <article className={`team-portrait-card team-card-${index + 1}`} key={member.name}>
+              <img src={member.image} alt={member.name} />
+              <div>
+                <strong>{member.name}</strong>
+                <span>{member.role}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className="metrics-grid">
-        <div className="metric-card">
+        <div className="metric-card metric-revenue">
+          <div className="metric-icon">$</div>
           <div className="metric-val">{formatMoney(totalRevenue)}</div>
           <div className="metric-label">Total Revenue</div>
         </div>
 
         <div className="metric-card">
+          <div className="metric-icon">📋</div>
           <div className="metric-val">{bookings.length}</div>
           <div className="metric-label">Total Bookings</div>
         </div>
 
         <div className="metric-card">
+          <div className="metric-icon">🏨</div>
           <div className="metric-val">{hotels.length}</div>
           <div className="metric-label">Active Hotels</div>
         </div>
 
         <div className="metric-card">
+          <div className="metric-icon">↗</div>
           <div className="metric-val">{occupancyRate}%</div>
           <div className="metric-label">Occupancy Rate</div>
         </div>
       </div>
 
-      <div className="card">
+      <div className="card admin-table-card">
         <div className="card-body">
-          <h3
-            style={{
-              fontFamily: "'Amiri', serif",
-              color: "var(--navy)",
-              marginBottom: "1rem",
-            }}
-          >
-            Recent Bookings
-          </h3>
+          <div className="admin-card-header">
+            <div>
+              <span className="admin-eyebrow">Reservation activity</span>
+              <h3>Recent Bookings</h3>
+            </div>
+          </div>
 
           <div style={{ overflowX: "auto" }}>
             <table className="table">

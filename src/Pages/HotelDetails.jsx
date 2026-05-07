@@ -80,6 +80,7 @@ function BookRoom(room) {
       hotelName: hotel.name,
       roomName: room.name,
       price: room.basePrice,
+      hotelImageUrl: hotel.imageUrl,
     },
   });
 }

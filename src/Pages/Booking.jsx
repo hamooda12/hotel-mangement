@@ -12,22 +12,22 @@ function BookingPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const {
-    mode,
-    returnTo = "/",
-    bookingId,
-    hotelId,
-    roomId,
-    hotelName,
-    roomName,
-    price,
-    totalPrice,
-    checkIn,
-    checkOut,
-    guests,
-    referenceCode,
-  } = location.state || {};
-
+const {
+  mode,
+  returnTo = "/",
+  bookingId,
+  hotelId,
+  roomId,
+  hotelName,
+  roomName,
+  hotelImageUrl,
+  price,
+  totalPrice,
+  checkIn,
+  checkOut,
+  guests,
+  referenceCode,
+} = location.state || {};
   const isConfirmExisting = mode === "confirm-existing";
 
   const today = new Date().toISOString().split("T")[0];
@@ -683,12 +683,17 @@ function BookingPage() {
           </section>
 
           <aside className="booking-summary-card" aria-label="Reservation summary">
-            <div className="booking-summary-image">
-              <div className="booking-summary-image-overlay">
-                <span>Luxury stay</span>
-                <strong>{formattedHotelName}</strong>
-              </div>
-            </div>
+            <div
+  className="booking-summary-image"
+  style={{
+    backgroundImage: `url(${hotelImageUrl || "/hotel-placeholder.jpg"})`,
+  }}
+>
+  <div className="booking-summary-image-overlay">
+    <span>Luxury stay</span>
+    <strong>{formattedHotelName}</strong>
+  </div>
+</div>
 
             <div className="booking-summary-body">
               <div className="booking-summary-title-row">
