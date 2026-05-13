@@ -1,0 +1,20 @@
+
+name: test-workflow
+
+on: 
+ workflow_dispatch:
+      inputs:
+       debug:
+        type: boolean
+        default: false
+run-name: 06 - Contexts | debug - ${{ inputs.debug }} and with author name ${{vars.HAMOODA}}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      jobEnv: 1234
+    steps:
+      - name: printEnv
+        run: |
+         echo "Hello ${{vars.HAMOODA}}"
+         echo "the number is ${{env.jobEnv}}"
