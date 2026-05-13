@@ -1,6 +1,11 @@
 name: test-workflow
 
-on: workflow_dispatch
+on: 
+ workflow_dispatch:
+      inputs:
+       debug:
+        type: boolean
+        default: false
 
 jobs:
   build:
