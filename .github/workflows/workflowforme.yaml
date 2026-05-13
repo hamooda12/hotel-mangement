@@ -1,5 +1,5 @@
 
-name: test-workflow
+name: hamad-workflow
 
 on: 
  workflow_dispatch:
