@@ -225,7 +225,7 @@ export function MyBookings() {
 
                   <div className="booking-actions-box">
                     <span className="booking-price-label">Total Price</span>
-                    <div className="booking-price">{formatMoney(booking.totalPrice)}</div>
+                    <div className="booking-price">{formatMoney(booking.totalPrice+(booking.totalPrice*0.1))}</div>
 
                     <div className="booking-buttons">
                       <button
@@ -242,7 +242,7 @@ export function MyBookings() {
                             navigate("/booking", {
                               state: {
                                 mode: "confirm-existing",
-                                returnTo: "/my-bookingsس",
+                                returnTo: "/my-bookings",
 
                                 bookingId: booking.id,
                                 hotelId: booking.hotelId,
@@ -250,9 +250,8 @@ export function MyBookings() {
 
                                 hotelName: booking.hotelName,
                                 roomName: booking.roomTypeName,
-
-                                price: booking.totalPrice,
-                                totalPrice: booking.totalPrice,
+price: booking.roomPrice || booking.pricePerNight || booking.roomTypePrice || 0,
+totalPrice: booking.totalPrice,
 
                                 checkIn: booking.checkIn,
                                 checkOut: booking.checkOut,

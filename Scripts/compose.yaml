@@ -1,0 +1,49 @@
+name: key-value-app
+services:
+ db:
+  image: mysql:8
+  ports:
+      - 3306:3306
+  env_file:
+   - .env.db
+  volumes:
+    - type: bind
+      source: ./db-config/mysql-init.sql
+      target: /docker-entrypoint-initdb.d/init.sql
+      read_only: true
+
+
+    - type: volume
+      source: mysql_data
+      target: /var/lib/mysql
+  networks:
+   - key_value_net
+
+ backend:
+  build:
+    context: C:/Users/tourt/OneDrive/Desktop/dock
+    dockerfile: Dockerfile.dev
+  ports:
+    - "8080:8080"
+  environment:
+    SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/key_value_db
+    SPRING_DATASOURCE_USERNAME: key_value_user
+    SPRING_DATASOURCE_PASSWORD: key_value_password
+  networks:
+    - key_value_net
+  depends_on:
+    - db
+  develop:
+
+    watch:
+      - action: sync+restart
+        path: C:/Users/tourt/OneDrive/Desktop/dock/src
+        target: /app/src
+
+      - action: rebuild
+        path: C:/Users/tourt/OneDrive/Desktop/dock/pom.xml
+
+volumes:
+ mysql_data:
+networks:
+ key_value_net:

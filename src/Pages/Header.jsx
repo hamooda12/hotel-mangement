@@ -101,7 +101,8 @@ async function doRegister() {
     const res = await axios.post("http://localhost:8080/api/auth/register", {
      
       email: RegisterDetails.email,
-      password: RegisterDetails.pass
+      password: RegisterDetails.pass,
+      userName:RegisterDetails.firstName
     });
 
     
@@ -116,6 +117,7 @@ setShowBookingBtn(true);
     closeAuthModal();
 
   } catch (err) {
+  
     showToast("User already exists ❌", "error");
   }
 }
