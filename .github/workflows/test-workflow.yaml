@@ -6,7 +6,7 @@ on:
        debug:
         type: boolean
         default: false
-
+run-name: 06 - Contexts | debug - ${{ inputs.debug }}
 jobs:
   build:
     runs-on: ubuntu-latest
