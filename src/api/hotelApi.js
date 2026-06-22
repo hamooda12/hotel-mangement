@@ -1,6 +1,6 @@
 import axios from "axios";
 import api from "../HelpersComponnent/api";
-const API_BASE_URL = " https://hotel-management-monolith-backend.onrender.com/api";
+const API_BASE_URL = "https://hotel-management-monolith-backend.onrender.com/api";
 
 export const getAuthHeaders = () => {
   const token = localStorage.getItem("accessToken");

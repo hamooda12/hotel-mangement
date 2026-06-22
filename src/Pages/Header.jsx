@@ -58,7 +58,7 @@ async function doLogin() {
   }
 
   try {
-    const res = await axios.post(" https://hotel-management-monolith-backend.onrender.com/api/auth/login", {
+    const res = await axios.post("https://hotel-management-monolith-backend.onrender.com/api/auth/login", {
       email: LoginEmail,
       password: LoginPass
     });
@@ -98,7 +98,7 @@ async function doRegister() {
   }
 
   try {
-    const res = await axios.post(" https://hotel-management-monolith-backend.onrender.com/api/auth/register", {
+    const res = await axios.post("https://hotel-management-monolith-backend.onrender.com/api/auth/register", {
      
       email: RegisterDetails.email,
       password: RegisterDetails.pass,
