@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: " https://hotel-management-monolith-backend.onrender.com/api",
 });
 
 api.interceptors.request.use((config) => {
@@ -26,7 +26,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refreshToken");
 
-        const res = await axios.post("http://localhost:8080/api/auth/refresh", {
+        const res = await axios.post(" https://hotel-management-monolith-backend.onrender.com/api/auth/refresh", {
           refreshToken,
         });
 

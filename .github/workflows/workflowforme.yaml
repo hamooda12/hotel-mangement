@@ -62,7 +62,7 @@ jobs:
         run: |
           echo "ORG_VAR: ${{ vars.ORG_VAR }}"
           echo "OVERWRITTEN_VAR: ${{ vars.OVERWRITTEN_VAR }}"
-          echo "REPOSITORY_VAR: ${{ vars.REPOSITORY_VAR }}"
+          echo "REPOSITORY_VAR: ${{ vars.HAMOODA }}"
 
   echo-prod:
     runs-on: ubuntu-latest
