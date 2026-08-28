@@ -118,7 +118,7 @@ setShowBookingBtn(true);
 
   } catch (err) {
   
-    showToast("User already exists ❌", "error");
+  showToast("User already exists ❌", "error");
   }
 }
 function openAuthModal() { switchAuthTab('login'); document.getElementById('auth-modal').classList.add('open'); }
@@ -146,18 +146,25 @@ function logout() {
   navigate("/home");
   showToast("Signed out successfully", "info");
 }
+
+function goHome() {
+  // Home loads its hotel statistics on mount. A full navigation guarantees
+  // fresh data after hotels are created/changed from the admin dashboard.
+  window.location.assign("/home");
+}
+
     return (
         <nav>
            
-  <div className="nav-brand" onClick={() => navigate("/home")}>
+  <div className="nav-brand" onClick={goHome}>
     <div className="nav-logo">ق</div>
     <span className="nav-title">Al-<span>Qasr</span></span>
   </div>
   <div className="nav-links">
-    <button className="nav-btn" onClick={() => navigate("/home")} data-page="home">Home</button>
+    <button className="nav-btn" onClick={goHome} data-page="home">Home</button>
     <button className="nav-btn" onClick={() => navigate("/search")} data-page="search">Hotels</button>
     <button className="nav-btn" id="my-bookings-btn" onClick={() => navigate("/my-bookings")} data-page="my-bookings" style={{ display: showBookingBtn ? 'block' : 'none' }}>My Bookings</button>
-    <button className="nav-btn" id="admin-btn" onClick={() => navigate("/admin")} data-page="admin" style={{ display: isLogin && currentUser.role==="ADMIN" ? 'block' : 'none' }}>Dashboard</button>
+    <button className="nav-btn" id="admin-btn" onClick={() => navigate("/admin")} style={{ display: isLogin && currentUser.role==="ADMIN" ? 'block' : 'none' }}>Dashboard</button>
 
     <div className="theme-toggle" onClick={toggleTheme} title="Toggle dark/light mode">
       <div className="toggle-track"><div className="toggle-knob" id="toggle-knob">{knob}</div></div>
