@@ -159,9 +159,9 @@ export function Header() {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("currentUser");
 
-    // Keep the user's AI conversation ID. The transcript remains safely stored
-    // in the backend and will be loaded again after the user signs in.
-    localStorage.removeItem("alqasr-ai-conversation-id");
+    // Keep the user's AI conversation ID so the same conversation can be
+    // restored after signing in again.
+    // IMPORTANT: do not remove "alqasr-ai-conversation-id" here.
 
     setCurrentUser(null);
     setIsLogin(false);
