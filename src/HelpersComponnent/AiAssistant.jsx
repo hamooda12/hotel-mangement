@@ -211,14 +211,15 @@ export function AiAssistant({ hotelName = "" }) {
               <p>{hotelName ? hotelName : "Your stay companion"}</p>
             </div>
 
-            <div className="ai-assistant-header-actions">
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <button
                 type="button"
-                className="ai-assistant-delete"
+                className="ai-assistant-close"
                 onClick={clearChat}
                 disabled={loading || deleting || historyLoading}
                 aria-label="Delete chat history"
                 title="Delete chat history"
+                style={{ fontSize: 16, opacity: deleting ? 0.5 : 1 }}
               >
                 {deleting ? "…" : "🗑"}
               </button>
