@@ -28,9 +28,6 @@ export function Header() {
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
 
-  // Restore authentication state after navigation or a browser refresh.
-  // Never clear tokens on component mount; they are cleared only by logout
-  // or when the refresh-token flow determines that the session is invalid.
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     const storedUser = localStorage.getItem("currentUser");
@@ -135,8 +132,8 @@ export function Header() {
         email: RegisterDetails.email,
       });
 
-      showToast(`Hello ${RegisterDetails.firstName}`, "success");
       closeAuthModal();
+      showToast(`Hello ${RegisterDetails.firstName}`, "success");
     } catch (err) {
       showToast("User already exists ❌", "error");
     }
@@ -158,9 +155,26 @@ export function Header() {
   }
 
   function logout() {
+    const storedUser = localStorage.getItem("currentUser");
+    let userIdentity = null;
+
+    try {
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      userIdentity = user?.email || user?.userName || null;
+    } catch {
+      userIdentity = null;
+    }
+
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("currentUser");
+
+    // Remove the active user's local conversation pointer only. Persisted
+    // transcript remains in the backend and is available again after login.
+    if (userIdentity) {
+      localStorage.removeItem(`alqasr-ai-conversation-id:${userIdentity}`);
+    }
+    localStorage.removeItem("alqasr-ai-conversation-id");
 
     setCurrentUser(null);
     setIsLogin(false);
@@ -172,8 +186,6 @@ export function Header() {
   }
 
   function goHome() {
-    // Use SPA navigation so React state and the authentication session are
-    // not unnecessarily reset by a full browser reload.
     navigate("/home");
   }
 
