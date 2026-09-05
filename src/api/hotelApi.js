@@ -1,164 +1,94 @@
-import axios from "axios";
 import api from "../HelpersComponnent/api";
-const API_BASE_URL = "https://hotel-management-monolith-backend.onrender.com/api";
 
-export const getAuthHeaders = () => {
-  const token = localStorage.getItem("accessToken");
-
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-  };
-};
+// Axios handles the access token through the shared request interceptor.
+// Keeping authentication in one place prevents stale or missing headers.
 
 // ================= HOTELS =================
 
 export const getHotels = async () => {
-  const response = await api.get(`${API_BASE_URL}/hotels`);
+  const response = await api.get("/hotels");
   return response.data;
 };
+
 export const createHotel = async (hotelData) => {
-  console.log(localStorage.getItem("accessToken"))
-  const response = await api.post(`${API_BASE_URL}/hotels`, hotelData, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.post("/hotels", hotelData);
   return response.data;
 };
+
 export const deleteHotel = async (hotelId) => {
-  const response = await api.delete(`${API_BASE_URL}/hotels/${hotelId}`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.delete(`/hotels/${hotelId}`);
   return response.data;
 };
-
 
 // ================= ROOM TYPES =================
 
 export const getRoomTypes = async (params = {}) => {
-  const response = await api.get(`${API_BASE_URL}/room-types`, {
-    params,
-  });
-
+  const response = await api.get("/room-types", { params });
   return response.data;
 };
+
 export const createRoomType = async (hotelId, roomData) => {
-  const response = await api.post(
-    `${API_BASE_URL}/hotels/${hotelId}/room-types`,
-    roomData,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
-
+  const response = await api.post(`/hotels/${hotelId}/room-types`, roomData);
   return response.data;
 };
-export const updateRoomType = async (roomTypeId, roomData) => {
-  const response = await api.put(
-    `${API_BASE_URL}/room-types/${roomTypeId}`,
-    roomData,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
 
+export const updateRoomType = async (roomTypeId, roomData) => {
+  const response = await api.put(`/room-types/${roomTypeId}`, roomData);
   return response.data;
 };
 
 export const deleteRoomType = async (roomTypeId) => {
-  const response = await api.delete(`${API_BASE_URL}/room-types/${roomTypeId}`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.delete(`/room-types/${roomTypeId}`);
   return response.data;
 };
 
 // ================= BOOKINGS =================
 
 export const createBooking = async (bookingData) => {
-  const response = await api.post(`${API_BASE_URL}/bookings`, bookingData, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.post("/bookings", bookingData);
   return response.data;
 };
 
 export const getBookingById = async (bookingId) => {
-  const response = await api.get(`${API_BASE_URL}/bookings/${bookingId}`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.get(`/bookings/${bookingId}`);
   return response.data;
 };
 
 export const getGuestBookingHistory = async () => {
-  const response = await api.get(`${API_BASE_URL}/bookings/guest-history`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.get("/bookings/guest-history");
   return response.data;
 };
 
 export const cancelBooking = async (bookingId) => {
-  const response = await api.patch(
-    `${API_BASE_URL}/bookings/${bookingId}/cancel`,
-    {},
-    {
-      headers: getAuthHeaders(),
-    }
-  );
-
+  const response = await api.patch(`/bookings/${bookingId}/cancel`, {});
   return response.data;
 };
 
 // ================= PAYMENTS =================
 
 export const createPaymentIntent = async (paymentData) => {
-  const response = await api.post(
-    `${API_BASE_URL}/payments/intent`,
-    paymentData,
-    {
-      headers: getAuthHeaders(),
-    }
-  );
-
+  const response = await api.post("/payments/intent", paymentData);
   return response.data;
 };
 
 export const simulatePayment = async (paymentId, outcome = "SUCCESS") => {
-  const response = await api.post(
-    `${API_BASE_URL}/payments/${paymentId}/simulate`,
-    {
-      outcome,
-    },
-    {
-      headers: getAuthHeaders(),
-    }
-  );
-
+  const response = await api.post(`/payments/${paymentId}/simulate`, {
+    outcome,
+  });
   return response.data;
 };
 
 export const getPaymentById = async (paymentId) => {
-  const response = await api.get(`${API_BASE_URL}/payments/${paymentId}`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.get(`/payments/${paymentId}`);
   return response.data;
 };
 
 export const getPayments = async () => {
-  const response = await api.get(`${API_BASE_URL}/payments`, {
-    headers: getAuthHeaders(),
-  });
-
+  const response = await api.get("/payments");
   return response.data;
 };
-export const getAllBookings = async () => {
-  const response = await api.get(`${API_BASE_URL}/bookings`, {
-    headers: getAuthHeaders(),
-  });
 
+export const getAllBookings = async () => {
+  const response = await api.get("/bookings");
   return response.data;
 };
