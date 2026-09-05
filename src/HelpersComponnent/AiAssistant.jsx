@@ -58,8 +58,7 @@ export function AiAssistant({ hotelName = "" }) {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      const nextConversationId = getOrCreateConversationId();
-      setConversationId(nextConversationId);
+      setConversationId(getOrCreateConversationId());
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -67,10 +66,12 @@ export function AiAssistant({ hotelName = "" }) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadHistory = async () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken || !conversationId) {
-        setMessages([getGreeting(hotelName)]);
+        if (!cancelled) setMessages([getGreeting(hotelName)]);
         return;
       }
 
@@ -78,6 +79,8 @@ export function AiAssistant({ hotelName = "" }) {
 
       try {
         const history = await getHotelAIHistory(conversationId);
+        if (cancelled) return;
+
         const persistedMessages = Array.isArray(history)
           ? history
               .filter((message) => message?.content)
@@ -94,13 +97,19 @@ export function AiAssistant({ hotelName = "" }) {
         );
       } catch (error) {
         console.error("AI history load error:", error);
-        setMessages([getGreeting(hotelName)]);
+        // Chat history is best-effort. A history failure must never prevent
+        // the user from sending a new AI message.
+        if (!cancelled) setMessages([getGreeting(hotelName)]);
       } finally {
-        setHistoryLoading(false);
+        if (!cancelled) setHistoryLoading(false);
       }
     };
 
     loadHistory();
+
+    return () => {
+      cancelled = true;
+    };
   }, [conversationId, hotelName]);
 
   useEffect(() => {
@@ -113,7 +122,7 @@ export function AiAssistant({ hotelName = "" }) {
     event?.preventDefault();
 
     const trimmed = question.trim();
-    if (!trimmed || loading || historyLoading) return;
+    if (!trimmed || loading) return;
 
     setMessages((current) => [
       ...current,
@@ -184,7 +193,7 @@ export function AiAssistant({ hotelName = "" }) {
           </header>
 
           <div className="ai-assistant-messages">
-            {historyLoading ? (
+            {historyLoading && messages.length === 1 && messages[0]?.role === "assistant" ? (
               <div className="ai-assistant-message ai-assistant-message-assistant ai-assistant-typing">
                 <span></span>
                 <span></span>
@@ -215,11 +224,11 @@ export function AiAssistant({ hotelName = "" }) {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="Ask about the hotel..."
-              disabled={loading || historyLoading}
+              disabled={loading}
             />
             <button
               type="submit"
-              disabled={loading || historyLoading || !question.trim()}
+              disabled={loading || !question.trim()}
             >
               {loading ? "..." : "Send"}
             </button>
