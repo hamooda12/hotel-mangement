@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { getHotelAIHistory, askHotelAI } from "../api/aiApi";
+import {
+  getHotelAIHistory,
+  askHotelAI,
+  deleteHotelAIHistory,
+} from "../api/aiApi";
 import "./aiAssistant.css";
 
 function createConversationId() {
@@ -55,6 +59,7 @@ export function AiAssistant({ hotelName = "" }) {
   const [messages, setMessages] = useState([getGreeting(hotelName)]);
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -97,8 +102,6 @@ export function AiAssistant({ hotelName = "" }) {
         );
       } catch (error) {
         console.error("AI history load error:", error);
-        // Chat history is best-effort. A history failure must never prevent
-        // the user from sending a new AI message.
         if (!cancelled) setMessages([getGreeting(hotelName)]);
       } finally {
         if (!cancelled) setHistoryLoading(false);
@@ -122,7 +125,7 @@ export function AiAssistant({ hotelName = "" }) {
     event?.preventDefault();
 
     const trimmed = question.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed || loading || deleting) return;
 
     setMessages((current) => [
       ...current,
@@ -162,6 +165,31 @@ export function AiAssistant({ hotelName = "" }) {
     }
   }
 
+  async function clearChat() {
+    if (loading || deleting) return;
+
+    const confirmed = window.confirm(
+      "Delete this chat history? Your long-term AI memory will not be changed."
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+
+    try {
+      await deleteHotelAIHistory(conversationId);
+      setMessages([getGreeting(hotelName)]);
+    } catch (error) {
+      console.error("AI chat deletion error:", error);
+      window.alert(
+        error?.response?.data?.message ||
+          "I could not delete the chat history. Please try again."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <>
       <button
@@ -182,14 +210,27 @@ export function AiAssistant({ hotelName = "" }) {
               <h2>Hotel Assistant</h2>
               <p>{hotelName ? hotelName : "Your stay companion"}</p>
             </div>
-            <button
-              type="button"
-              className="ai-assistant-close"
-              onClick={() => setOpen(false)}
-              aria-label="Close AI assistant"
-            >
-              ×
-            </button>
+
+            <div className="ai-assistant-header-actions">
+              <button
+                type="button"
+                className="ai-assistant-delete"
+                onClick={clearChat}
+                disabled={loading || deleting || historyLoading}
+                aria-label="Delete chat history"
+                title="Delete chat history"
+              >
+                {deleting ? "…" : "🗑"}
+              </button>
+              <button
+                type="button"
+                className="ai-assistant-close"
+                onClick={() => setOpen(false)}
+                aria-label="Close AI assistant"
+              >
+                ×
+              </button>
+            </div>
           </header>
 
           <div className="ai-assistant-messages">
@@ -224,11 +265,11 @@ export function AiAssistant({ hotelName = "" }) {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="Ask about the hotel..."
-              disabled={loading}
+              disabled={loading || deleting}
             />
             <button
               type="submit"
-              disabled={loading || !question.trim()}
+              disabled={loading || deleting || !question.trim()}
             >
               {loading ? "..." : "Send"}
             </button>
