@@ -13,3 +13,14 @@ export const askHotelAI = async ({ hotelName = "", question, conversationId }) =
 
   return response.data;
 };
+
+/**
+ * Load the persisted transcript for the current authenticated user.
+ */
+export const getHotelAIHistory = async (conversationId) => {
+  const response = await api.get("/AI/history", {
+    params: { conversationId },
+  });
+
+  return response.data;
+};
