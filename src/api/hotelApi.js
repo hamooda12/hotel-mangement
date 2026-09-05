@@ -5,8 +5,8 @@ import api from "../HelpersComponnent/api";
 
 // ================= HOTELS =================
 
-export const getHotels = async () => {
-  const response = await api.get("/hotels");
+export const getHotels = async (params = { page: 0, size: 100 }) => {
+  const response = await api.get("/hotels", { params });
   return response.data;
 };
 
