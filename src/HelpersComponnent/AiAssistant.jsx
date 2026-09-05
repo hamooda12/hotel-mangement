@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { askHotelAI } from "../api/aiApi";
+import { useEffect, useState } from "react";
+import { getHotelAIHistory, askHotelAI } from "../api/aiApi";
 import "./aiAssistant.css";
 
 function createConversationId() {
@@ -10,47 +10,110 @@ function createConversationId() {
   return `hotel-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem("currentUser");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getConversationStorageKey() {
+  const user = getStoredUser();
+  const identity = user?.email || user?.userName;
+
+  return identity
+    ? `alqasr-ai-conversation-id:${identity}`
+    : "alqasr-ai-conversation-id:guest";
+}
+
+function getOrCreateConversationId() {
+  const storageKey = getConversationStorageKey();
+  const existing = localStorage.getItem(storageKey);
+
+  if (existing) return existing;
+
+  const created = createConversationId();
+  localStorage.setItem(storageKey, created);
+  return created;
+}
+
+function getGreeting(hotelName) {
+  return {
+    role: "assistant",
+    content: hotelName
+      ? `Hi! I can help you with ${hotelName}. Ask me about rooms, amenities, availability, or anything about this stay.`
+      : "Hi! I’m the Al-Qasr AI assistant. Ask me about our hotels, rooms, availability, and stays.",
+  };
+}
+
 export function AiAssistant({ hotelName = "" }) {
-  const conversationId = useMemo(() => {
-    const storageKey = "alqasr-ai-conversation-id";
-    const existing = localStorage.getItem(storageKey);
-
-    if (existing) return existing;
-
-    const created = createConversationId();
-    localStorage.setItem(storageKey, created);
-    return created;
-  }, []);
-
+  const [conversationId, setConversationId] = useState(() => getOrCreateConversationId());
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content:
-        hotelName
-          ? `Hi! I can help you with ${hotelName}. Ask me about rooms, amenities, availability, or anything about this stay.`
-          : "Hi! I’m the Al-Qasr AI assistant. Ask me about our hotels, rooms, availability, and stays.",
-    },
-  ]);
+  const [messages, setMessages] = useState([getGreeting(hotelName)]);
   const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
-    setMessages([
-      {
-        role: "assistant",
-        content: hotelName
-          ? `Hi! I can help you with ${hotelName}. Ask me about rooms, amenities, availability, or anything about this stay.`
-          : "Hi! I’m the Al-Qasr AI assistant. Ask me about our hotels, rooms, availability, and stays.",
-      },
-    ]);
+    const handleStorageChange = () => {
+      const nextConversationId = getOrCreateConversationId();
+      setConversationId(nextConversationId);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken || !conversationId) {
+        setMessages([getGreeting(hotelName)]);
+        return;
+      }
+
+      setHistoryLoading(true);
+
+      try {
+        const history = await getHotelAIHistory(conversationId);
+        const persistedMessages = Array.isArray(history)
+          ? history
+              .filter((message) => message?.content)
+              .map((message) => ({
+                role: message.role === "USER" ? "user" : "assistant",
+                content: message.content,
+              }))
+          : [];
+
+        setMessages(
+          persistedMessages.length > 0
+            ? persistedMessages
+            : [getGreeting(hotelName)]
+        );
+      } catch (error) {
+        console.error("AI history load error:", error);
+        setMessages([getGreeting(hotelName)]);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [conversationId, hotelName]);
+
+  useEffect(() => {
+    if (!localStorage.getItem("accessToken")) {
+      setMessages([getGreeting(hotelName)]);
+    }
   }, [hotelName]);
 
   async function sendQuestion(event) {
     event?.preventDefault();
 
     const trimmed = question.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed || loading || historyLoading) return;
 
     setMessages((current) => [
       ...current,
@@ -121,14 +184,22 @@ export function AiAssistant({ hotelName = "" }) {
           </header>
 
           <div className="ai-assistant-messages">
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={`ai-assistant-message ai-assistant-message-${message.role}`}
-              >
-                {message.content}
+            {historyLoading ? (
+              <div className="ai-assistant-message ai-assistant-message-assistant ai-assistant-typing">
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
-            ))}
+            ) : (
+              messages.map((message, index) => (
+                <div
+                  key={`${message.role}-${index}`}
+                  className={`ai-assistant-message ai-assistant-message-${message.role}`}
+                >
+                  {message.content}
+                </div>
+              ))
+            )}
 
             {loading && (
               <div className="ai-assistant-message ai-assistant-message-assistant ai-assistant-typing">
@@ -144,9 +215,12 @@ export function AiAssistant({ hotelName = "" }) {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="Ask about the hotel..."
-              disabled={loading}
+              disabled={loading || historyLoading}
             />
-            <button type="submit" disabled={loading || !question.trim()}>
+            <button
+              type="submit"
+              disabled={loading || historyLoading || !question.trim()}
+            >
               {loading ? "..." : "Send"}
             </button>
           </form>
