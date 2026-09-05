@@ -5,7 +5,7 @@ import api from "../HelpersComponnent/api";
  * The backend expects hotelName, question, and a conversationId.
  */
 export const askHotelAI = async ({ hotelName = "", question, conversationId }) => {
-  const response = await api.post("/AI/ask", {
+  const response = await api.post("/AI/ask/normal", {
     hotelName,
     question,
     conversationId,
