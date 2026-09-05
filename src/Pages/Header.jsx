@@ -155,25 +155,12 @@ export function Header() {
   }
 
   function logout() {
-    const storedUser = localStorage.getItem("currentUser");
-    let userIdentity = null;
-
-    try {
-      const user = storedUser ? JSON.parse(storedUser) : null;
-      userIdentity = user?.email || user?.userName || null;
-    } catch {
-      userIdentity = null;
-    }
-
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("currentUser");
 
-    // Remove the active user's local conversation pointer only. Persisted
-    // transcript remains in the backend and is available again after login.
-    if (userIdentity) {
-      localStorage.removeItem(`alqasr-ai-conversation-id:${userIdentity}`);
-    }
+    // Keep the user's AI conversation ID. The transcript remains safely stored
+    // in the backend and will be loaded again after the user signs in.
     localStorage.removeItem("alqasr-ai-conversation-id");
 
     setCurrentUser(null);
