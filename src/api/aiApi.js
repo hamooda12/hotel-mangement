@@ -24,3 +24,13 @@ export const getHotelAIHistory = async (conversationId) => {
 
   return response.data;
 };
+
+/**
+ * Delete the persisted transcript for the current conversation.
+ * Long-term user memory is managed separately and is not affected.
+ */
+export const deleteHotelAIHistory = async (conversationId) => {
+  await api.delete("/AI/history", {
+    params: { conversationId },
+  });
+};
